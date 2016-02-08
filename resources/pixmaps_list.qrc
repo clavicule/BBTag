@@ -1,0 +1,6 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file>pixmaps/add.png</file>
+    <file>pixmaps/remove.png</file>
+</qresource>
+</RCC>

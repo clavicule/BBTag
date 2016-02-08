@@ -13,12 +13,12 @@ TEMPLATE = app
 
 INCLUDEPATH += ./include
 
-DEPENDPATH += ./src/ui\
-              ./src/core
-
 SOURCES += \
     src/ui/bbtag_main_window.cpp \
     src/ui/main.cpp
 
 HEADERS  += \
     include/ui/bbtag_main_window.h
+
+RESOURCES += \
+    resources/pixmaps_list.qrc
