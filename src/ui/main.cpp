@@ -1,4 +1,4 @@
-#include <ui/bbtag_main_window.h>
+#include <ui/main_window.h>
 #include <QApplication>
 
 int main(
@@ -7,7 +7,7 @@ int main(
     )
 {
     QApplication a(argc, argv);
-    BBTagMainWindow w;
+    MainWindow w;
     w.show();
 
     return a.exec();

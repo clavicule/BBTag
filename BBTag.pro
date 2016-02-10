@@ -11,14 +11,24 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = BBTag
 TEMPLATE = app
 
+CONFIG += debug
+
 INCLUDEPATH += ./include
 
 SOURCES += \
-    src/ui/bbtag_main_window.cpp \
-    src/ui/main.cpp
+    src/ui/main.cpp \
+    src/core/tag_model.cpp \
+    src/core/tag_item.cpp \
+    src/ui/main_window.cpp \
+    src/ui/tag_viewer.cpp \
+    src/ui/tag_scroll_view.cpp
 
 HEADERS  += \
-    include/ui/bbtag_main_window.h
+    include/core/tag_model.h \
+    include/core/tag_item.h \
+    include/ui/main_window.h \
+    include/ui/tag_viewer.h \
+    include/ui/tag_scroll_view.h
 
 RESOURCES += \
     resources/pixmaps_list.qrc
