@@ -16,7 +16,7 @@ TagViewer::~TagViewer()
 }
 
 void TagViewer::updateTagToolStatus(
-        bool activate
+        bool /*activate*/
     )
 {
 //    tagging_ = activate;

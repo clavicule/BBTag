@@ -69,7 +69,7 @@ MainWindow::MainWindow(
 
     tag_model_ = new TagModel( this );
     QTreeView* tag_tree_view = new QTreeView( image_tag_widget );
-    tag_tree_view->setModel( tag_model_ );
+    tag_model_->attach( tag_tree_view );
 
     image_tag_layout->addLayout( image_tag_button_layout );
     image_tag_layout->addWidget( tag_tree_view );

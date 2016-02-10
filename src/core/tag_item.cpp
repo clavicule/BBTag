@@ -1,26 +1,45 @@
 #include <core/tag_item.h>
 
-#include <QFileInfo>
-
 
 TagItem::TagItem(
-        const QString& tag_label,
-        const QColor& tag_color
+        const QColor& tag_color,
+        const QString& tag_label
+    ) : QStandardItem()
+{
+    tag_color_ = tag_color;
+    tag_label_ = tag_label;
+}
+
+TagItem::TagItem(
+        TagItem* tag_item,
+        const QString& image_file
     )
 {
-    tag_label_ = tag_label;
-    tag_color_ = tag_color;
+    QFileInfo fi( image_file );
+
+    if( !tag_item || !fi.exists() ) {
+        return;
+    }
+
+    fullpath_ = fi.absoluteFilePath();
+    tag_color_ = tag_item->tag_color_;
+    tag_label_ = tag_item->tag_label_;
+    tag_item->appendRow( this );
 }
 
 TagItem::TagItem(
         const TagItem& tag_item
     )
 {
-    tag_label_ = tag_item.tag_label_;
     tag_color_ = tag_item.tag_color_;
-
-    index_ = tag_item.index_;
+    tag_label_ = tag_item.tag_label_;
+    fullpath_ = tag_item.fullpath_;
     bbox_ = tag_item.bbox_;
+
+    QStandardItem* tag_parent = tag_item.QStandardItem::parent();
+    if( tag_parent ) {
+        tag_parent->appendRow( this );
+    }
 }
 
 TagItem& TagItem::operator = (
@@ -28,11 +47,22 @@ TagItem& TagItem::operator = (
     )
 {
     if( this != &tag_item ) {
-        tag_label_ = tag_item.tag_label_;
         tag_color_ = tag_item.tag_color_;
-
-        index_ = tag_item.index_;
+        tag_label_ = tag_item.tag_label_;
+        fullpath_ = tag_item.fullpath_;
         bbox_ = tag_item.bbox_;
+
+        // remove itself first
+        QStandardItem* current_parent = QStandardItem::parent();
+        if( current_parent ) {
+            current_parent->removeRow( row() );
+        }
+
+        // then reparent
+        QStandardItem* tag_parent = tag_item.QStandardItem::parent();
+        if( tag_parent ) {
+            tag_parent->appendRow( this );
+        }
     }
 
     return *this;
@@ -42,41 +72,27 @@ TagItem::~TagItem()
 {
 }
 
-void TagItem::add_tag(
-        const QString& image_path,
-        const QRect& bbox
-    )
-{
-    QFileInfo fi( image_path );
-    if( !fi.exists() ) {
-        return;
-    }
-
-    QString key = fi.absoluteFilePath();
-    index_.append( key );
-    bbox_[ key ].append( bbox );
-}
-
-QString TagItem::filename(
-        int i
+QVariant TagItem::data(
+        int role
     ) const
 {
-    if( i < 0 || i > index_.count() ) {
-        return QString::null;
+    if( fullpath_.isEmpty() ) { // tag label
+        if( role == Qt::DecorationRole ) {
+            return QVariant( tag_color_ );
+
+        } else if( role == Qt::DisplayRole || role == Qt::ToolTipRole ) {
+            return QVariant( tag_label_ );
+        }
+
+    } else { // image item
+        if( role == Qt::DisplayRole ) {
+            return QVariant( filename() );
+
+        } else if( role == Qt::ToolTipRole ) {
+            return QVariant( fullpath_ );
+        }
     }
 
-    return QFileInfo( index_.at(i) ).fileName();
-}
-
-// returns the full file path at the given index
-QString TagItem::fullpath(
-        int i
-    ) const
-{
-    if( i < 0 || i > index_.count() ) {
-        return QString::null;
-    }
-
-    return index_.at(i);
+    return QVariant();
 }
 

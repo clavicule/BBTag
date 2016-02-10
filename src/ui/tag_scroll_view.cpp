@@ -15,7 +15,7 @@ TagScrollView::~TagScrollView()
 }
 
 void TagScrollView::wheelEvent(
-        QWheelEvent* e
+        QWheelEvent* /*e*/
      )
 {
 
