@@ -11,7 +11,7 @@
 #include <QPushButton>
 #include <QScrollArea>
 #include <QImageReader>
-#include <QTextCodec>
+#include <QInputDialog>
 
 
 MainWindow::MainWindow(
@@ -61,30 +61,41 @@ MainWindow::MainWindow(
     // Icons unmodified under CreativeCommon Attribution-NonCommercial 3.0 Unported license
     // http://creativecommons.org/licenses/by-nc/3.0/
     // From Snip Master --> http://www.snipicons.com/
+    QPushButton* import_button = new QPushButton( QIcon( ":/pixmaps/import.png" ), "", image_tag_widget );
+    import_button->setFixedSize( 32, 32 );
+    import_button->setIconSize( QSize( 32, 32 ) );
+
     QPushButton* add_button = new QPushButton( QIcon( ":/pixmaps/add.png" ), "", image_tag_widget );
-    QPushButton* remove_button = new QPushButton( QIcon( ":/pixmaps/remove.png" ), "", image_tag_widget );
     add_button->setFixedSize( 32, 32 );
-    remove_button->setFixedSize( 32, 32 );
     add_button->setIconSize( QSize( 32, 32 ) );
+
+    QPushButton* remove_button = new QPushButton( QIcon( ":/pixmaps/remove.png" ), "", image_tag_widget );
+    remove_button->setFixedSize( 32, 32 );
     remove_button->setIconSize( QSize( 32, 32 ) );
 
-    QVBoxLayout* image_tag_button_layout = new QVBoxLayout();
-    image_tag_button_layout->addWidget( add_button );
-    image_tag_button_layout->addWidget( remove_button );
+    QHBoxLayout* tag_tree_button_layout = new QHBoxLayout();
+    tag_tree_button_layout->addWidget( add_button );
+    tag_tree_button_layout->addWidget( remove_button );
+    tag_tree_button_layout->addStretch();
 
     tag_model_ = new TagModel( this );
-    QTreeView* tag_tree_view = new QTreeView( image_tag_widget );
-    tag_tree_view->setEditTriggers( QAbstractItemView::NoEditTriggers );
-    tag_model_->attach( tag_tree_view );
+    tag_view_ = new QTreeView( image_tag_widget );
+    tag_view_->setEditTriggers( QAbstractItemView::NoEditTriggers );
+    tag_view_->setSelectionMode( QAbstractItemView::ExtendedSelection );
+    tag_model_->attach( tag_view_ );
 
-    image_tag_layout->addLayout( image_tag_button_layout );
-    image_tag_layout->addWidget( tag_tree_view );
+    QVBoxLayout* tag_tree_layout = new QVBoxLayout();
+    tag_tree_layout->addLayout( tag_tree_button_layout );
+    tag_tree_layout->addWidget( tag_view_ );
+
+    image_tag_layout->addWidget( import_button );
+    image_tag_layout->addLayout( tag_tree_layout );
     image_tag_widget->setLayout( image_tag_layout );
 
 
     // --------
     // widget #3
-    // right-most widget in
+    // right-most widget in splitter is image viewer
     // on OSX: don't mind the debug messages when mouse hover scrollbar:
     // bug report as of Feb 6th 2016.
     // --> https://bugreports.qt.io/browse/QTBUG-49899
@@ -110,7 +121,8 @@ MainWindow::MainWindow(
     resize( 1000, 600 );
 
     // setup connections
-    connect( add_button, SIGNAL( clicked() ), this, SLOT( import_images() ) );
+    connect( import_button, SIGNAL( clicked() ), this, SLOT( import_images() ) );
+    connect( add_button, SIGNAL( clicked() ), this, SLOT( add_label() ) );
     connect( remove_button, SIGNAL( clicked() ), this, SLOT( remove_images() ) );
 }
 
@@ -161,7 +173,29 @@ void MainWindow::import_images()
     tag_model_->import_images( img_to_import );
 }
 
+void MainWindow::add_label()
+{
+    QString new_label_name = QInputDialog::getText( this, "New label", "Enter new tag label", QLineEdit::Normal, "my_label" );
+    if( new_label_name.isEmpty() ) {
+        return;
+    }
+
+    // generate random color
+    // and avoid colors to be too close to each other
+    int r = qrand() % 255;
+    int g = qrand() % 255;
+    int b = qrand() % 255;
+
+    tag_model_->add_new_label( QColor::fromRgb( r, g, b ), new_label_name );
+}
+
 void MainWindow::remove_images()
 {
+    // get the current selected rows for column 0 (directories and files)
+    QItemSelectionModel* selection_model = tag_view_->selectionModel();
+    if( !selection_model ) {
+        return;
+    }
 
+    tag_model_->remove_items( selection_model->selectedRows() );
 }

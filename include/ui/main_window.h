@@ -22,6 +22,7 @@ public:
 
 public slots:
     void import_images();
+    void add_label();
     void remove_images();
 
 protected:
@@ -32,6 +33,7 @@ private:
     QTreeView* dir_view_;
 
     TagModel* tag_model_;
+    QTreeView* tag_view_;
 
     TagViewer* tag_viewer_;
     TagScrollView* tag_scroll_view_;

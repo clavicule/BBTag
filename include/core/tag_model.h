@@ -35,6 +35,12 @@ public:
         QAbstractItemView* view
     );
 
+    // initial import of images
+    // they will be added to <UNTAGGED and <ALL>
+    void import_images(
+        const QStringList& image_list
+    );
+
     // adds a new tag label name in the tree
     // with the given color
     // returns false if item cannot be added
@@ -44,14 +50,18 @@ public:
         const QString& label
     );
 
-    // initial import of images
-    // they will be added to **untagged** and *all*
-    void import_images(
-        const QStringList& image_list
+    // remove the items with the given indexes
+    // if a tag label is selected, all the item images are removed
+    // as well as the label
+    // if removed images no longer have tag, they become available
+    // in the <UNTAGGED> area
+    // UNTAGGED and ALL labels cannot be removed but their image can
+    void remove_items(
+        const QModelIndexList& index_list
     );
 
 private:
-    QStandardItemModel* tag_model_;
+    QStandardItemModel* model_;
     TagItem* untagged_item_;
     TagItem* all_item_;
 
@@ -64,7 +74,7 @@ void TagModel::attach(
         QAbstractItemView* view
     )
 {
-    view->setModel( tag_model_ );
+    view->setModel( model_ );
 }
 
 #endif // TAG_MODEL_H
