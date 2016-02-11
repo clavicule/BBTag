@@ -11,8 +11,6 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = BBTag
 TEMPLATE = app
 
-CONFIG += debug
-
 INCLUDEPATH += ./include
 
 SOURCES += \
