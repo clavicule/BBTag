@@ -69,6 +69,12 @@ public:
     // returns the list of tags
     inline const QList<QRect>& tags() const;
 
+    // returns the child item matching the given fullpath
+    // or null if none are found
+    TagItem* find_item(
+        const QString& fullpath
+    ) const;
+
 private:
     QColor tag_color_;
     QString tag_label_;

@@ -149,7 +149,7 @@ void MainWindow::import_images()
         return;
     }
 
-    QStringList img_to_import;
+    QFileInfoList img_to_import;
 
     // list all the valid image file in the selection
     QModelIndexList selection = selection_model->selectedRows();
@@ -160,13 +160,9 @@ void MainWindow::import_images()
         // check if selection is a directory or a file
         if( img_info.isDir() ) {
             // if a directory, add all the image files from it
-            QFileInfoList img_list = QDir( img_info.absoluteFilePath() ).entryInfoList( valid_image_format(), QDir::Files );
-            for( QFileInfoList::iterator fi_itr = img_list.begin(); fi_itr != img_list.end(); ++fi_itr ) {
-                img_to_import.append( (*fi_itr).absoluteFilePath() );
-            }
-
+            img_to_import.append( QDir( img_info.absoluteFilePath() ).entryInfoList( valid_image_format(), QDir::Files ) );
         } else {
-            img_to_import.append( img_info.absoluteFilePath() );
+            img_to_import.append( img_info );
         }
     }
 

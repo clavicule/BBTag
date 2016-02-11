@@ -15,13 +15,11 @@ TagItem::TagItem(
         const QString& image_file
     )
 {
-    QFileInfo fi( image_file );
-
-    if( !tag_item || !fi.exists() ) {
+    if( !tag_item ) {
         return;
     }
 
-    fullpath_ = fi.absoluteFilePath();
+    fullpath_ = image_file;
     tag_color_ = tag_item->tag_color_;
     tag_label_ = tag_item->tag_label_;
     tag_item->appendRow( this );
@@ -97,5 +95,23 @@ QVariant TagItem::data(
     }
 
     return QVariant();
+}
+
+TagItem* TagItem::find_item(
+        const QString& fullpath
+    ) const
+{
+    for( int r = 0; r < rowCount(); ++r ) {
+        TagItem* kid = dynamic_cast<TagItem*>(child( r ));
+        if( !kid ) {
+            continue;
+        }
+
+        if( fullpath == kid->fullpath() ) {
+            return kid;
+        }
+    }
+
+    return 0;
 }
 

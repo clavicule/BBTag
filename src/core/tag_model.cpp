@@ -19,8 +19,8 @@ TagModel::TagModel(
     // default tree has 2 labels:
     // - untagged: images that have not been tagged at all
     // - all: all images imported regardless of their tag status
-    untagged_item_ = new TagItem( Qt::transparent, "<UNTAGGED>" );
     all_item_ = new TagItem( Qt::transparent, "<ALL>" );
+    untagged_item_ = new TagItem( Qt::transparent, "<UNTAGGED>" );
 
     root->appendRow( untagged_item_ );
     root->appendRow( all_item_ );
@@ -31,14 +31,14 @@ TagModel::~TagModel()
 }
 
 void TagModel::import_images(
-        const QStringList& image_list
+        const QFileInfoList& image_list
     )
 {
-    for( QStringList::const_iterator img_itr = image_list.begin(); img_itr != image_list.end(); ++img_itr ) {
-        TagItem* new_untagged_item = new TagItem( untagged_item_, *img_itr );
-        TagItem* new_all_item = new TagItem( all_item_, *img_itr );
-        Q_UNUSED( new_untagged_item );
-        Q_UNUSED( new_all_item );
+    for( QFileInfoList::const_iterator img_itr = image_list.begin(); img_itr != image_list.end(); ++img_itr ) {
+        const QFileInfo& fi = *img_itr;
+
+        add_image_to_label( untagged_item_, fi );
+        add_image_to_label( all_item_, fi );
     }
 }
 
@@ -48,7 +48,7 @@ bool TagModel::add_new_label(
     )
 {
     // check if label is already taken
-    if( model_->findItems( label, Qt::MatchFixedString, 0 ).count() > 0 ) {
+    if( model_->findItems( label, Qt::MatchCaseSensitive, 0 ).count() > 0 ) {
         return false;
     }
 
@@ -64,27 +64,113 @@ void TagModel::remove_items(
         const QModelIndexList& index_list
     )
 {
-    // sort indices from last to first
-    // otherwise selection indexing becomes invalid
-    // --> using STL - qSort and other QtAlgo are obsolete
-    QModelIndexList sorted_index_list = index_list;
-    std::sort( sorted_index_list.begin(), sorted_index_list.end() );
 
-    for( int idx_itr = sorted_index_list.count() - 1; idx_itr >= 0; --idx_itr ) {
-        const QModelIndex& idx = sorted_index_list.at( idx_itr );
+    QModelIndexList index_to_remove;
+    for( QModelIndexList::const_iterator idx_itr = index_list.begin(); idx_itr != index_list.end(); ++idx_itr ) {
+        const QModelIndex& idx = *idx_itr;
         if( !idx.isValid() ) {
             continue;
         }
 
-        QStandardItem* item = model_->itemFromIndex( idx );
+        TagItem* item = dynamic_cast<TagItem*>(model_->itemFromIndex( idx ));
         if( !item || item == untagged_item_ || item == all_item_ ) {
             continue;
         }
 
-        QModelIndex parent_index = item->parent()? item->parent()->index() : QModelIndex();
-        model_->removeRow( item->row(), parent_index );
+        TagItem* parent_item = dynamic_cast<TagItem*>(item->QStandardItem::parent());
+        QModelIndex parent_index = parent_item? parent_item->index() : QModelIndex();
+
+        // unreferences relevant labels associated the item
+        // if parent is ALL --> completely removes item i-e from all label it belongs to
+        // if parent is UNTAGGED --> does nothing, item cannot be removed from UNTAGGED
+        // if parent is another label --> unref and removes from that label only
+        // if parent is root (i-e we're dealing with an image item)
+        //   --> remove all items belonging to that label
+        if( parent_index.isValid() ) {
+            const QString& fullpath = item->fullpath();
+            TagItemList& ref_list = image_path_ref_[ fullpath ];
+
+            if( parent_item == all_item_ ) {
+                for( TagItemList::iterator ref_itr = ref_list.begin(); ref_itr != ref_list.end(); ++ref_itr ) {
+
+                    // find the reference to the same image in other labels
+                    TagItem* ref = (*ref_itr)->find_item( fullpath );
+                    if( !ref ) {
+                        // it should not happen but we never know...
+                        continue;
+                    }
+                    index_to_remove.append( ref->index() );
+                }
+                image_path_ref_.remove( fullpath );
+
+            } else if( parent_item == untagged_item_ ) {
+                // the only way to remove from UNTAGGED is when the image
+                // is removed from ALL
+                continue;
+
+            } else {
+                // unref itself
+                index_to_remove.append( item->index() );
+                ref_list.removeAll( parent_item );
+
+                // check if image is not reference is any other tag
+                // in that case, it is added back to UNTAGGED
+                if( ref_list.isEmpty() ) {
+                    add_image_to_label( untagged_item_, QFileInfo( item->fullpath() ) );
+                }
+            }
+        } else {
+            // we only unref all items from the label
+            // no need to destroy individually all the items as they will be removed
+            // when the tag label is removed
+            for( int r = 0; r < item->rowCount(); ++r ) {
+                TagItem* image_item = dynamic_cast<TagItem*>(item->child( r ));
+                if( !image_item ) {
+                    // it should not happen but we never know...
+                    continue;
+                }
+                image_path_ref_[ image_item->fullpath() ].removeAll( item );
+            }
+            index_to_remove.append( item->index() );
+
+        }
     }
 
-    // to do: re-assign removed items to ALL and UNTAGGED if applicable
-    // to do: implies removing the bbox, etc.
+    // sort indices from last to first
+    // otherwise selection indexing becomes invalid
+    // --> using STL - qSort and other QtAlgo are obsolete
+    std::sort( index_to_remove.begin(), index_to_remove.end() );
+
+    for( int idx_itr = index_to_remove.count() - 1; idx_itr >= 0; --idx_itr ) {
+        const QModelIndex& idx = index_to_remove.at( idx_itr );
+
+        QStandardItem* item = model_->itemFromIndex( idx );
+        if( !item ) {
+            continue;
+        }
+
+        QModelIndex parent_index = item->parent()? item->parent()->index() : QModelIndex();
+        model_->removeRow( idx.row(), parent_index );
+    }
+}
+
+void TagModel::add_image_to_label(
+        TagItem* label_item,
+        const QFileInfo& image_file
+    )
+{
+    if( !label_item || !image_file.exists() ) {
+        return;
+    }
+
+    QString image_filename = image_file.absoluteFilePath();
+
+    // ensure the image is not already imported
+    if( image_path_ref_[ image_filename ].contains( label_item ) ) {
+        return;
+    }
+    image_path_ref_[ image_filename ].append( label_item );
+
+    TagItem* new_item = new TagItem( label_item, image_filename );
+    Q_UNUSED( new_item );
 }

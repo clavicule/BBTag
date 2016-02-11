@@ -4,6 +4,7 @@
 #include <core/tag_item.h>
 
 #include <QAbstractItemView>
+#include <QHash>
 
 class QStandardItemModel;
 
@@ -38,7 +39,7 @@ public:
     // initial import of images
     // they will be added to <UNTAGGED and <ALL>
     void import_images(
-        const QStringList& image_list
+        const QFileInfoList& image_list
     );
 
     // adds a new tag label name in the tree
@@ -60,11 +61,23 @@ public:
         const QModelIndexList& index_list
     );
 
+protected:
+    // internal use: adds a new image item in the model
+    // and reference the label associated with it
+    void add_image_to_label(
+        TagItem* label_item,
+        const QFileInfo& image_file
+    );
+
 private:
     QStandardItemModel* model_;
     TagItem* untagged_item_;
     TagItem* all_item_;
 
+    // cross-reference image path with tag name
+    // to make it easier and avoid costly search in children items
+    typedef QList<TagItem*> TagItemList;
+    QHash<QString, TagItemList> image_path_ref_;
 };
 
 
