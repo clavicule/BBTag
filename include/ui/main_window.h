@@ -2,6 +2,7 @@
 #define MAIN_WINDOW_H
 
 #include <QMainWindow>
+#include <QItemSelection>
 
 class QTreeView;
 class QFileSystemModel;
@@ -21,9 +22,20 @@ public:
     virtual ~MainWindow();
 
 public slots:
+    // import images in the tag tree
     void import_images();
+
+    // add a new label in the tag tree
     void add_label();
+
+    // remove selected image items from
+    // the tag tree
     void remove_images();
+
+protected slots:
+    // internal slot for updating the viewer
+    // with the current selected image
+    void update_viewer();
 
 protected:
     static QStringList valid_image_format();

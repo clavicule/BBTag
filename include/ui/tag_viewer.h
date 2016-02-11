@@ -14,6 +14,10 @@ public:
 
     virtual ~TagViewer();
 
+    inline void setImage(
+        const QPixmap& pix
+    );
+
 signals:
     void tagFinished();
 
@@ -50,6 +54,25 @@ private:
     QPoint tag_start_;
     QPoint tag_end_;
 
+    QPixmap pix_;
+
 };
+
+
+/************************* inline *************************/
+
+void TagViewer::setImage(
+        const QPixmap& pix
+    )
+{
+    pix_ = pix;
+
+    if( pix_.isNull() ) {
+        resize( 400, 150 );
+    } else {
+        resize( pix.size() );
+    }
+    repaint();
+}
 
 #endif // TAG_VIEWER_H

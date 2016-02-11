@@ -51,7 +51,7 @@ public:
         const QString& label
     );
 
-    // remove the items with the given indexes
+    // removes the items with the given indexes
     // if a tag label is selected, all the item images are removed
     // as well as the label
     // if removed images no longer have tag, they become available
@@ -59,6 +59,12 @@ public:
     // UNTAGGED and ALL labels cannot be removed but their image can
     void remove_items(
         const QModelIndexList& index_list
+    );
+
+    // returns the image path file corresponding to the given index
+    // returns null if index does not correspond to an image item
+    QString get_fullpath(
+        const QModelIndex& index
     );
 
 protected:

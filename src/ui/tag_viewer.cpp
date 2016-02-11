@@ -52,8 +52,28 @@ void TagViewer::paintEvent(
     )
 {
     QPainter p( this );
-    p.setPen( Qt::blue );
-    p.drawRect( QRect( tag_start_, tag_end_ ) );
+
+    if( !pix_.isNull() ) {
+        p.drawPixmap( 0, 0, pix_ );
+    } else {
+        QTextOption options( Qt::AlignLeft );
+        options.setWrapMode( QTextOption::WordWrap );
+        p.setPen( QPen( Qt::red, 4 ) );
+        p.drawText(
+            QRectF( rect() ),
+            "Image cannot be displayed. Check:\n"
+            " - only one image is selected\n"
+            " - the image file is still at the same disk location when imported\n"
+            " - the image format is valid and/or the file is not corrupted ",
+            options
+        );
+    }
+
+    if( tag_start_ != tag_end_ ) {
+        p.setPen( Qt::blue );
+        p.drawRect( QRect( tag_start_, tag_end_ ) );
+    }
+
 }
 
 void TagViewer::mousePressEvent(

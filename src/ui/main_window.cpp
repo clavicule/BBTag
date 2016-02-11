@@ -124,6 +124,8 @@ MainWindow::MainWindow(
     connect( import_button, SIGNAL( clicked() ), this, SLOT( import_images() ) );
     connect( add_button, SIGNAL( clicked() ), this, SLOT( add_label() ) );
     connect( remove_button, SIGNAL( clicked() ), this, SLOT( remove_images() ) );
+
+    connect( tag_view_->selectionModel(), SIGNAL( selectionChanged(QItemSelection,QItemSelection) ), this, SLOT( update_viewer() ) );
 }
 
 MainWindow::~MainWindow()
@@ -194,4 +196,22 @@ void MainWindow::remove_images()
     }
 
     tag_model_->remove_items( selection_model->selectedRows() );
+}
+
+void MainWindow::update_viewer()
+{
+    QPixmap pix;
+
+    QItemSelectionModel* selection_model = tag_view_->selectionModel();
+    if( selection_model ) {
+        QModelIndexList selection = selection_model->selectedRows();
+        if( selection.count() == 1 ) {
+            pix.load( tag_model_->get_fullpath( selection.first() ) );
+        }
+    }
+
+    // ok to send a null pixmap
+    // the viewer will recognize that
+    // and display a message instead
+    tag_viewer_->setImage( pix );
 }

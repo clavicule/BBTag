@@ -174,3 +174,19 @@ void TagModel::add_image_to_label(
     TagItem* new_item = new TagItem( label_item, image_filename );
     Q_UNUSED( new_item );
 }
+
+QString TagModel::get_fullpath(
+        const QModelIndex& index
+    )
+{
+    if( !index.isValid() ) {
+        return QString::null;
+    }
+
+    TagItem* item = dynamic_cast<TagItem*>(model_->itemFromIndex( index ));
+    if( !item ) {
+        return QString::null;
+    }
+
+    return item->fullpath();
+}
