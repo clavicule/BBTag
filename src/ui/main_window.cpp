@@ -10,6 +10,9 @@
 #include <QSplitter>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QImageReader>
+#include <QTextCodec>
+
 
 MainWindow::MainWindow(
         QWidget *parent
@@ -30,19 +33,21 @@ MainWindow::MainWindow(
     QString root_path = QDir::rootPath();
 
     // set the tree view to follow a directory parser model
-    QFileSystemModel* dir_model = new QFileSystemModel( this );
-    dir_model->setRootPath( root_path );
+    dir_model_ = new QFileSystemModel( this );
+    dir_model_->setRootPath( root_path );
+    dir_model_->setNameFilters( valid_image_format() );
 
     // left-most widget in splitter is a directory parser
-    QTreeView* dir_view = new QTreeView( splitter );
-    dir_view->setModel( dir_model );
-    dir_view->setSelectionBehavior( QAbstractItemView::SelectRows );
-    dir_view->setSelectionMode( QAbstractItemView::ExtendedSelection );
+    dir_view_ = new QTreeView( splitter );
+    dir_view_->setModel( dir_model_ );
+    dir_view_->setSelectionBehavior( QAbstractItemView::SelectRows );
+    dir_view_->setSelectionMode( QAbstractItemView::ExtendedSelection );
 
     // initialize directory tree view
-    const QModelIndex root_index = dir_model->index( root_path );
+    const QModelIndex root_index = dir_model_->index( root_path );
     if( root_index.isValid() ) {
-        dir_view->setRootIndex( root_index );
+        dir_view_->setRootIndex( root_index );
+        dir_view_->setColumnWidth( 0, 200 );
     }
 
 
@@ -69,6 +74,7 @@ MainWindow::MainWindow(
 
     tag_model_ = new TagModel( this );
     QTreeView* tag_tree_view = new QTreeView( image_tag_widget );
+    tag_tree_view->setEditTriggers( QAbstractItemView::NoEditTriggers );
     tag_model_->attach( tag_tree_view );
 
     image_tag_layout->addLayout( image_tag_button_layout );
@@ -89,7 +95,7 @@ MainWindow::MainWindow(
     // --------
     // Main Widget
     // arrange widgets inside the splitter widget
-    splitter->addWidget( dir_view );
+    splitter->addWidget( dir_view_ );
     splitter->addWidget( image_tag_widget );
     splitter->addWidget( tag_scroll_view_ );
     splitter->setStretchFactor( 0, 1 );
@@ -97,14 +103,65 @@ MainWindow::MainWindow(
     splitter->setStretchFactor( 2, 3 );
 
     QList<int> sizes;
-    sizes << 100 << 100 << 300;
+    sizes << 300 << 300 << 400;
     splitter->setSizes( sizes );
 
     setCentralWidget( splitter );
-    resize( 800, 500 );
+    resize( 1000, 600 );
+
+    // setup connections
+    connect( add_button, SIGNAL( clicked() ), this, SLOT( import_images() ) );
+    connect( remove_button, SIGNAL( clicked() ), this, SLOT( remove_images() ) );
 }
 
 MainWindow::~MainWindow()
+{
+}
+
+QStringList MainWindow::valid_image_format()
+{
+    QStringList image_filters;
+    QList<QByteArray> supported_img_format = QImageReader::supportedImageFormats();
+    for( QList<QByteArray>::iterator fmt_itr = supported_img_format.begin(); fmt_itr != supported_img_format.end(); ++fmt_itr ) {
+        image_filters.append( "*." + QString::fromUtf8( *fmt_itr ) );
+    }
+
+    return image_filters;
+}
+
+void MainWindow::import_images()
+{
+    // get the current selected rows for column 0 (directories and files)
+    QItemSelectionModel* selection_model = dir_view_->selectionModel();
+    if( !selection_model ) {
+        return;
+    }
+
+    QStringList img_to_import;
+
+    // list all the valid image file in the selection
+    QModelIndexList selection = selection_model->selectedRows();
+    for( QModelIndexList::iterator s_itr = selection.begin(); s_itr != selection.end(); ++s_itr ) {
+
+        QFileInfo img_info = dir_model_->fileInfo( *s_itr );
+
+        // check if selection is a directory or a file
+        if( img_info.isDir() ) {
+            // if a directory, add all the image files from it
+            QFileInfoList img_list = QDir( img_info.absoluteFilePath() ).entryInfoList( valid_image_format(), QDir::Files );
+            for( QFileInfoList::iterator fi_itr = img_list.begin(); fi_itr != img_list.end(); ++fi_itr ) {
+                img_to_import.append( (*fi_itr).absoluteFilePath() );
+            }
+
+        } else {
+            img_to_import.append( img_info.absoluteFilePath() );
+        }
+    }
+
+    tag_model_->import_images( img_to_import );
+}
+
+void MainWindow::remove_images()
 {
 
 }

@@ -90,6 +90,9 @@ QVariant TagItem::data(
 
         } else if( role == Qt::ToolTipRole ) {
             return QVariant( fullpath_ );
+
+        } else if( role == Qt::DecorationRole ) {
+            return QVariant( QColor( Qt::transparent ) );
         }
     }
 

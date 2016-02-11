@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 
+class QTreeView;
+class QFileSystemModel;
 class TagScrollView;
 class TagViewer;
 class TagModel;
@@ -18,10 +20,21 @@ public:
 
     virtual ~MainWindow();
 
+public slots:
+    void import_images();
+    void remove_images();
+
+protected:
+    static QStringList valid_image_format();
+
 private:
-    TagScrollView* tag_scroll_view_;
+    QFileSystemModel* dir_model_;
+    QTreeView* dir_view_;
+
     TagModel* tag_model_;
+
     TagViewer* tag_viewer_;
+    TagScrollView* tag_scroll_view_;
 };
 
 #endif // MAIN_WINDOW_H
