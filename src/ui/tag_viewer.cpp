@@ -5,7 +5,7 @@
 
 TagViewer::TagViewer(
         QWidget* parent
-    ) : QWidget( parent ), tagging_( true )
+    ) : QWidget( parent ), tagging_( false )
 {
     setBackgroundRole( QPalette::Base );
     setAutoFillBackground( true );
@@ -15,12 +15,11 @@ TagViewer::~TagViewer()
 {
 }
 
-void TagViewer::updateTagToolStatus(
-        bool /*activate*/
+void TagViewer::set_tagging_status(
+        bool activate
     )
 {
-//    tagging_ = activate;
-    emit( tagFinished() );
+    tagging_ = activate;
 }
 
 void TagViewer::enforceBoundaryConditions(
@@ -55,6 +54,7 @@ void TagViewer::paintEvent(
 
     if( !pix_.isNull() ) {
         p.drawPixmap( 0, 0, pix_ );
+
     } else {
         QTextOption options( Qt::AlignLeft );
         options.setWrapMode( QTextOption::WordWrap );
@@ -67,11 +67,27 @@ void TagViewer::paintEvent(
             " - the image format is valid and/or the file is not corrupted ",
             options
         );
+
+        return;
     }
 
-    if( tag_start_ != tag_end_ ) {
-        p.setPen( Qt::blue );
-        p.drawRect( QRect( tag_start_, tag_end_ ) );
+    QFont font;
+    font.setPointSize( 8 );
+    p.setFont( font );
+
+    // draw bounding boxes
+    p.setPen( QPen( color_, 2 ) );
+    for( QList<QRect>::iterator bbox_itr = tags_.begin(); bbox_itr != tags_.end(); ++bbox_itr ) {
+        p.drawRect( *bbox_itr );
+        p.drawText( (*bbox_itr).x(), (*bbox_itr).y(), label_ );
+    }
+
+    // draw current box being tagged
+    p.setPen( QPen( current_color_, 2 ) );
+    if( tagging_ && tag_start_ != tag_end_ ) {
+        QRect current_rect( tag_start_, tag_end_ );
+        p.drawRect( current_rect );
+        p.drawText( current_rect.x(), current_rect.y(), current_label_ );
     }
 
 }
@@ -115,5 +131,4 @@ void TagViewer::mouseReleaseEvent(
 
     tag_end_ = e->pos();
     enforceBoundaryConditions( tag_end_ );
-    updateTagToolStatus( false );
 }

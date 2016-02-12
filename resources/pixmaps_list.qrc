@@ -3,5 +3,6 @@
 	<file>pixmaps/import.png</file>
 	<file>pixmaps/add.png</file>
 	<file>pixmaps/remove.png</file>
+	<file>pixmaps/tag.png</file>
 </qresource>
 </RCC>

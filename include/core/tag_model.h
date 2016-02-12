@@ -65,7 +65,29 @@ public:
     // returns null if index does not correspond to an image item
     QString get_fullpath(
         const QModelIndex& index
-    );
+    ) const;
+
+    // returns list of bounding boxes drawn on that image for that label
+    // returns empty list if index does not correspond to an image item
+    QList<QRect> get_tags(
+        const QModelIndex& index
+    ) const;
+
+    // returns the color of the tag label
+    // returns transparent if index does not correspond to an image item
+    QColor get_color(
+        const QModelIndex& index
+    ) const;
+
+    // returns the tag label name
+    // returns null if index does not correspond to an image item
+    QString get_label(
+        const QModelIndex& index
+    ) const;
+
+    // returns the list of tags with their associated color
+    // excluding UNTAGGED and ALL
+    QList< QPair<QString, QColor> > get_all_tags() const;
 
 protected:
     // internal use: adds a new image item in the model

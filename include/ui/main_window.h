@@ -6,6 +6,7 @@
 
 class QTreeView;
 class QFileSystemModel;
+class QComboBox;
 class TagScrollView;
 class TagViewer;
 class TagModel;
@@ -37,8 +38,16 @@ protected slots:
     // with the current selected image
     void update_viewer();
 
+    // internal slot for updating the viewer tagging options
+    // based on the current tag selection
+    void set_viewer_tag_options();
+
 protected:
+    // returns the list of supported image format files
     static QStringList valid_image_format();
+
+    // update the tag selector to be sync'ed with label list
+    void update_tag_selector();
 
 private:
     QFileSystemModel* dir_model_;
@@ -47,6 +56,7 @@ private:
     TagModel* tag_model_;
     QTreeView* tag_view_;
 
+    QComboBox* label_selector_;
     TagViewer* tag_viewer_;
     TagScrollView* tag_scroll_view_;
 };

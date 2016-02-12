@@ -139,6 +139,7 @@ void TagModel::remove_items(
     // sort indices from last to first
     // otherwise selection indexing becomes invalid
     // --> using STL - qSort and other QtAlgo are obsolete
+
     std::sort( index_to_remove.begin(), index_to_remove.end() );
 
     for( int idx_itr = index_to_remove.count() - 1; idx_itr >= 0; --idx_itr ) {
@@ -177,7 +178,7 @@ void TagModel::add_image_to_label(
 
 QString TagModel::get_fullpath(
         const QModelIndex& index
-    )
+    ) const
 {
     if( !index.isValid() ) {
         return QString::null;
@@ -189,4 +190,67 @@ QString TagModel::get_fullpath(
     }
 
     return item->fullpath();
+}
+
+QList<QRect> TagModel::get_tags(
+        const QModelIndex& index
+    ) const
+{
+    if( !index.isValid() ) {
+        return QList<QRect>();
+    }
+
+    TagItem* item = dynamic_cast<TagItem*>(model_->itemFromIndex( index ));
+    if( !item ) {
+        return QList<QRect>();
+    }
+
+    return item->tags();
+}
+
+QColor TagModel::get_color(
+        const QModelIndex& index
+    ) const
+{
+    if( !index.isValid() ) {
+        return QColor( Qt::transparent );
+    }
+
+    TagItem* item = dynamic_cast<TagItem*>(model_->itemFromIndex( index ));
+    if( !item ) {
+        return QColor( Qt::transparent );
+    }
+
+    return item->color();
+}
+
+QString TagModel::get_label(
+        const QModelIndex& index
+    ) const
+{
+    if( !index.isValid() ) {
+        return QString::null;
+    }
+
+    TagItem* item = dynamic_cast<TagItem*>(model_->itemFromIndex( index ));
+    if( !item ) {
+        return QString::null;
+    }
+
+    return item->label();
+}
+
+QList< QPair<QString, QColor> > TagModel::get_all_tags() const
+{
+    QList< QPair<QString, QColor> > tags;
+    for( int r = 0; r < model_->rowCount(); ++r ) {
+        TagItem* item = dynamic_cast<TagItem*>(model_->item( r ));
+        if( !item || item == untagged_item_ || item == all_item_ ) {
+            continue;
+        }
+
+        tags.append( QPair<QString, QColor>( item->label(), item->color() ) );
+    }
+
+    return tags;
 }

@@ -22,6 +22,7 @@ TagItem::TagItem(
     fullpath_ = image_file;
     tag_color_ = tag_item->tag_color_;
     tag_label_ = tag_item->tag_label_;
+    bbox_ = tag_item->bbox_;
     tag_item->appendRow( this );
 }
 
