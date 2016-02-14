@@ -14,6 +14,15 @@ class TagItem : public QObject, public QStandardItem
     Q_OBJECT
 
 public:
+    // structure provided for convenience
+    struct Elements {
+        QColor _color;
+        QString _label;
+        QString _fullpath;
+        QList<QRect> _bbox;
+    };
+
+public:
     // use this constructor to make it a tag label
     // (no image reference)
     TagItem(
@@ -69,11 +78,10 @@ public:
     // returns the list of tags
     inline const QList<QRect>& tags() const;
 
-    // returns the child item matching the given fullpath
-    // or null if none are found
-    TagItem* find_item(
-        const QString& fullpath
-    ) const;
+    // returns all the item parameters
+    // under one structured element
+    // for convenience
+    inline Elements elements() const;
 
 private:
     QColor tag_color_;
@@ -115,6 +123,17 @@ const QColor& TagItem::color() const
 const QList<QRect>& TagItem::tags() const
 {
     return bbox_;
+}
+
+TagItem::Elements TagItem::elements() const
+{
+    Elements elt;
+    elt._color = tag_color_;
+    elt._label = tag_label_;
+    elt._fullpath = fullpath_;
+    elt._bbox = bbox_;
+
+    return elt;
 }
 
 #endif // TAG_ITEM_H

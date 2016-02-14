@@ -88,20 +88,16 @@ void TagModel::remove_items(
         //   --> remove all items belonging to that label
         if( parent_index.isValid() ) {
             const QString& fullpath = item->fullpath();
-            TagItemList& ref_list = image_path_ref_[ fullpath ];
+            TagItemList& ref_label_list = image_label_ref_[ fullpath ];
+            TagItemList& ref_image_list = image_image_ref_[ fullpath ];
 
             if( parent_item == all_item_ ) {
-                for( TagItemList::iterator ref_itr = ref_list.begin(); ref_itr != ref_list.end(); ++ref_itr ) {
-
-                    // find the reference to the same image in other labels
-                    TagItem* ref = (*ref_itr)->find_item( fullpath );
-                    if( !ref ) {
-                        // it should not happen but we never know...
-                        continue;
-                    }
+                while( !ref_image_list.isEmpty() ) {
+                    TagItem* ref = ref_image_list.takeLast();
                     index_to_remove.append( ref->index() );
                 }
-                image_path_ref_.remove( fullpath );
+                image_label_ref_.remove( fullpath );
+                image_image_ref_.remove( fullpath );
 
             } else if( parent_item == untagged_item_ ) {
                 // the only way to remove from UNTAGGED is when the image
@@ -111,11 +107,12 @@ void TagModel::remove_items(
             } else {
                 // unref itself
                 index_to_remove.append( item->index() );
-                ref_list.removeAll( parent_item );
+                ref_label_list.removeAll( parent_item );
+                ref_image_list.removeAll( item );
 
                 // check if image is not reference is any other tag
                 // in that case, it is added back to UNTAGGED
-                if( ref_list.isEmpty() ) {
+                if( ref_label_list.isEmpty() ) {
                     add_image_to_label( untagged_item_, QFileInfo( item->fullpath() ) );
                 }
             }
@@ -129,7 +126,8 @@ void TagModel::remove_items(
                     // it should not happen but we never know...
                     continue;
                 }
-                image_path_ref_[ image_item->fullpath() ].removeAll( item );
+                image_label_ref_[ image_item->fullpath() ].removeAll( item );
+                image_image_ref_[ image_item->fullpath() ].removeAll( image_item );
             }
             index_to_remove.append( item->index() );
 
@@ -167,89 +165,41 @@ void TagModel::add_image_to_label(
     QString image_filename = image_file.absoluteFilePath();
 
     // ensure the image is not already imported
-    if( image_path_ref_[ image_filename ].contains( label_item ) ) {
+    if( image_label_ref_[ image_filename ].contains( label_item ) ) {
         return;
     }
-    image_path_ref_[ image_filename ].append( label_item );
-
     TagItem* new_item = new TagItem( label_item, image_filename );
-    Q_UNUSED( new_item );
+
+    image_label_ref_[ image_filename ].append( label_item );
+    image_image_ref_[ image_filename ].append( new_item );
 }
 
-QString TagModel::get_fullpath(
+TagItem::Elements TagModel::get_elements(
         const QModelIndex& index
     ) const
 {
     if( !index.isValid() ) {
-        return QString::null;
+        return TagItem::Elements();
     }
 
     TagItem* item = dynamic_cast<TagItem*>(model_->itemFromIndex( index ));
     if( !item ) {
-        return QString::null;
+        return TagItem::Elements();
     }
 
-    return item->fullpath();
+    return item->elements();
 }
 
-QList<QRect> TagModel::get_tags(
-        const QModelIndex& index
-    ) const
+QList<TagItem::Elements> TagModel::get_all_tags() const
 {
-    if( !index.isValid() ) {
-        return QList<QRect>();
-    }
-
-    TagItem* item = dynamic_cast<TagItem*>(model_->itemFromIndex( index ));
-    if( !item ) {
-        return QList<QRect>();
-    }
-
-    return item->tags();
-}
-
-QColor TagModel::get_color(
-        const QModelIndex& index
-    ) const
-{
-    if( !index.isValid() ) {
-        return QColor( Qt::transparent );
-    }
-
-    TagItem* item = dynamic_cast<TagItem*>(model_->itemFromIndex( index ));
-    if( !item ) {
-        return QColor( Qt::transparent );
-    }
-
-    return item->color();
-}
-
-QString TagModel::get_label(
-        const QModelIndex& index
-    ) const
-{
-    if( !index.isValid() ) {
-        return QString::null;
-    }
-
-    TagItem* item = dynamic_cast<TagItem*>(model_->itemFromIndex( index ));
-    if( !item ) {
-        return QString::null;
-    }
-
-    return item->label();
-}
-
-QList< QPair<QString, QColor> > TagModel::get_all_tags() const
-{
-    QList< QPair<QString, QColor> > tags;
+    QList<TagItem::Elements> tags;
     for( int r = 0; r < model_->rowCount(); ++r ) {
         TagItem* item = dynamic_cast<TagItem*>(model_->item( r ));
         if( !item || item == untagged_item_ || item == all_item_ ) {
             continue;
         }
 
-        tags.append( QPair<QString, QColor>( item->label(), item->color() ) );
+        tags.append( item->elements() );
     }
 
     return tags;

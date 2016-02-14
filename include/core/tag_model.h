@@ -61,33 +61,15 @@ public:
         const QModelIndexList& index_list
     );
 
-    // returns the image path file corresponding to the given index
-    // returns null if index does not correspond to an image item
-    QString get_fullpath(
+    // returns the elements corresponding to the given index
+    // returns an empty element if index does not correspond to an image item
+    TagItem::Elements get_elements(
         const QModelIndex& index
     ) const;
 
-    // returns list of bounding boxes drawn on that image for that label
-    // returns empty list if index does not correspond to an image item
-    QList<QRect> get_tags(
-        const QModelIndex& index
-    ) const;
-
-    // returns the color of the tag label
-    // returns transparent if index does not correspond to an image item
-    QColor get_color(
-        const QModelIndex& index
-    ) const;
-
-    // returns the tag label name
-    // returns null if index does not correspond to an image item
-    QString get_label(
-        const QModelIndex& index
-    ) const;
-
-    // returns the list of tags with their associated color
+    // returns the list of tags with their elements
     // excluding UNTAGGED and ALL
-    QList< QPair<QString, QColor> > get_all_tags() const;
+    QList<TagItem::Elements> get_all_tags() const;
 
 protected:
     // internal use: adds a new image item in the model
@@ -102,10 +84,13 @@ private:
     TagItem* untagged_item_;
     TagItem* all_item_;
 
-    // cross-reference image path with tag name
-    // to make it easier and avoid costly search in children items
+    // cross-reference:
+    // - image path with tag name
+    // - image path with all existing image item
+    // to make it easier and avoid "costly" search in children items
     typedef QList<TagItem*> TagItemList;
-    QHash<QString, TagItemList> image_path_ref_;
+    QHash<QString, TagItemList> image_label_ref_;
+    QHash<QString, TagItemList> image_image_ref_;
 };
 
 

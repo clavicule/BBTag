@@ -98,21 +98,3 @@ QVariant TagItem::data(
     return QVariant();
 }
 
-TagItem* TagItem::find_item(
-        const QString& fullpath
-    ) const
-{
-    for( int r = 0; r < rowCount(); ++r ) {
-        TagItem* kid = dynamic_cast<TagItem*>(child( r ));
-        if( !kid ) {
-            continue;
-        }
-
-        if( fullpath == kid->fullpath() ) {
-            return kid;
-        }
-    }
-
-    return 0;
-}
-

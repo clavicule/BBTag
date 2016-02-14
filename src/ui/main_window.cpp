@@ -238,10 +238,12 @@ void MainWindow::update_viewer()
 
         if( selection.count() == 1 ) {
             const QModelIndex& index = selection.first();
-            pix.load( tag_model_->get_fullpath( index ) );
-            bbox = tag_model_->get_tags( index );
-            color = tag_model_->get_color( index );
-            label = tag_model_->get_label( index );
+            TagItem::Elements elt = tag_model_->get_elements( index );
+
+            pix.load( elt._fullpath );
+            bbox = elt._bbox;
+            color = elt._color;
+            label = elt._label;
 
         }
     }
@@ -259,12 +261,13 @@ void MainWindow::update_viewer()
 void MainWindow::update_tag_selector()
 {
     label_selector_->clear();
-    QList< QPair<QString, QColor> > tags = tag_model_->get_all_tags();
+    QList<TagItem::Elements> tags = tag_model_->get_all_tags();
 
-    for( QList< QPair<QString, QColor> >::iterator tag_itr = tags.begin(); tag_itr != tags.end(); ++tag_itr ) {
+    for( QList<TagItem::Elements>::iterator tag_itr = tags.begin(); tag_itr != tags.end(); ++tag_itr ) {
         int idx = label_selector_->count();
-        label_selector_->insertItem( idx, (*tag_itr).first );
-        label_selector_->setItemData( idx, QVariant( (*tag_itr).second ), Qt::DecorationRole );
+        const TagItem::Elements& tag = *tag_itr;
+        label_selector_->insertItem( idx, tag._label );
+        label_selector_->setItemData( idx, QVariant( tag._color ), Qt::DecorationRole );
     }
 }
 
