@@ -8,40 +8,50 @@ class TagViewer : public QWidget
     Q_OBJECT
 
 public:
+    // very similar structure to TagItem::Elements
+    // we could use it however that would make TagViewer
+    // no longer portable in case it could be
+    // used for other structures than TagItem
+    // viewer should always be independent of the model
+    // I know it seems redundant...
+    struct TagDisplayElement {
+        QColor _color;
+        QList<QRect> _bbox;
+        QString _label;
+    };
+
+public:
     TagViewer(
         QWidget* parent = 0
     );
 
     virtual ~TagViewer();
 
+    // set the background image
+    // if image cannot be loaded
+    // error message will be displayed instead
     inline void set_image(
         const QPixmap& pix
     );
 
-    inline void set_tags(
-        const QList<QRect>& tags
+    inline void set_overlay_elements(
+        const QList<TagDisplayElement>& elements
     );
 
-    inline void set_color(
-        const QColor& color
-    );
-
-    inline void set_label(
-        const QString& label
-    );
-
+    // set the label and color for the current tag being drawn
     inline void set_tag_options(
         const QString& current_label,
         const QColor& current_color
     );
 
 public slots:
+    // activate or deactivate the tagging tool
     void set_tagging_status(
        bool activate
     );
 
 protected:
-    void enforceBoundaryConditions(
+    void enforce_boundary_conditions(
         QPoint& p
     );
 
@@ -69,9 +79,7 @@ private:
     QPoint tag_end_;
 
     QPixmap pix_;
-    QList<QRect> tags_;
-    QColor color_;
-    QString label_;
+    QList<TagDisplayElement> elts_;
 
     QString current_label_;
     QColor current_color_;
@@ -93,25 +101,11 @@ void TagViewer::set_image(
     }
 }
 
-void TagViewer::set_tags(
-        const QList<QRect>& tags
+void TagViewer::set_overlay_elements(
+        const QList<TagViewer::TagDisplayElement>& elements
     )
 {
-    tags_ = tags;
-}
-
-void TagViewer::set_color(
-        const QColor& color
-    )
-{
-    color_ = color;
-}
-
-void TagViewer::set_label(
-        const QString& label
-    )
-{
-    label_ = label;
+    elts_ = elements;
 }
 
 void TagViewer::set_tag_options(

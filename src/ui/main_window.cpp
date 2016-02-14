@@ -228,9 +228,7 @@ void MainWindow::remove_images()
 void MainWindow::update_viewer()
 {
     QPixmap pix;
-    QList<QRect> bbox;
-    QColor color;
-    QString label;
+    QList<TagViewer::TagDisplayElement> display_elements;
 
     QItemSelectionModel* selection_model = tag_view_->selectionModel();
     if( selection_model ) {
@@ -238,23 +236,27 @@ void MainWindow::update_viewer()
 
         if( selection.count() == 1 ) {
             const QModelIndex& index = selection.first();
-            TagItem::Elements elt = tag_model_->get_elements( index );
 
-            pix.load( elt._fullpath );
-            bbox = elt._bbox;
-            color = elt._color;
-            label = elt._label;
+            pix.load( tag_model_->get_fullpath( index ) );
+            QList<TagItem::Elements> item_elts = tag_model_->get_elements( index );
+            for( QList<TagItem::Elements>::iterator elt_itr = item_elts.begin(); elt_itr != item_elts.end(); ++elt_itr ) {
+                const TagItem::Elements& tag_elt = *elt_itr;
 
+                TagViewer::TagDisplayElement tag;
+                tag._color = tag_elt._color;
+                tag._label = tag_elt._label;
+                tag._bbox = tag_elt._bbox;
+
+                display_elements.append( tag );
+            }
         }
     }
 
     // ok to send a null pixmap
     // the viewer will recognize that
     // and display a message instead
-    tag_viewer_->set_color( color );
-    tag_viewer_->set_label( label );
-    tag_viewer_->set_tags( bbox );
     tag_viewer_->set_image( pix );
+    tag_viewer_->set_overlay_elements( display_elements );
     tag_viewer_->update();
 }
 

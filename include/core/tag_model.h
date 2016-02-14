@@ -61,9 +61,15 @@ public:
         const QModelIndexList& index_list
     );
 
-    // returns the elements corresponding to the given index
-    // returns an empty element if index does not correspond to an image item
-    TagItem::Elements get_elements(
+    // returns the fullpath corresponding to the given index
+    QString get_fullpath(
+        const QModelIndex& index
+    ) const;
+
+    // returns the elements corresponding to the given index if not item under ALL
+    // returns one element per label if item belongs to ALL and not a specific label
+    // returns an empty list if index does not correspond to an image item
+    QList<TagItem::Elements> get_elements(
         const QModelIndex& index
     ) const;
 

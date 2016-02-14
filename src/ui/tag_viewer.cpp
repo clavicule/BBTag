@@ -22,7 +22,7 @@ void TagViewer::set_tagging_status(
     tagging_ = activate;
 }
 
-void TagViewer::enforceBoundaryConditions(
+void TagViewer::enforce_boundary_conditions(
         QPoint& p
     )
 {
@@ -76,10 +76,16 @@ void TagViewer::paintEvent(
     p.setFont( font );
 
     // draw bounding boxes
-    p.setPen( QPen( color_, 2 ) );
-    for( QList<QRect>::iterator bbox_itr = tags_.begin(); bbox_itr != tags_.end(); ++bbox_itr ) {
-        p.drawRect( *bbox_itr );
-        p.drawText( (*bbox_itr).x(), (*bbox_itr).y(), label_ );
+    for( QList<TagDisplayElement>::iterator tag_itr = elts_.begin(); tag_itr != elts_.end(); ++tag_itr ) {
+        const TagDisplayElement& tag = *tag_itr;
+        const QList<QRect> bbox = tag._bbox;
+
+        p.setPen( QPen( tag._color, 2 ) );
+
+        for( QList<QRect>::const_iterator bbox_itr = bbox.begin(); bbox_itr != bbox.end(); ++bbox_itr ) {
+            p.drawRect( *bbox_itr );
+            p.drawText( (*bbox_itr).x(), (*bbox_itr).y(), tag._label );
+        }
     }
 
     // draw current box being tagged
@@ -116,7 +122,7 @@ void TagViewer::mouseMoveEvent(
     }
 
     tag_end_ = e->pos();
-    enforceBoundaryConditions( tag_end_ );
+    enforce_boundary_conditions( tag_end_ );
     repaint();
 
 }
@@ -130,5 +136,5 @@ void TagViewer::mouseReleaseEvent(
     }
 
     tag_end_ = e->pos();
-    enforceBoundaryConditions( tag_end_ );
+    enforce_boundary_conditions( tag_end_ );
 }

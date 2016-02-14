@@ -174,20 +174,51 @@ void TagModel::add_image_to_label(
     image_image_ref_[ image_filename ].append( new_item );
 }
 
-TagItem::Elements TagModel::get_elements(
+QString TagModel::get_fullpath(
         const QModelIndex& index
     ) const
 {
     if( !index.isValid() ) {
-        return TagItem::Elements();
+        return QString::null;
     }
 
     TagItem* item = dynamic_cast<TagItem*>(model_->itemFromIndex( index ));
     if( !item ) {
-        return TagItem::Elements();
+        return QString::null;
     }
 
-    return item->elements();
+    return item->fullpath();
+}
+
+QList<TagItem::Elements> TagModel::get_elements(
+        const QModelIndex& index
+    ) const
+{
+    QList<TagItem::Elements> elts;
+
+    if( !index.isValid() ) {
+        return elts;
+    }
+
+    TagItem* item = dynamic_cast<TagItem*>(model_->itemFromIndex( index ));
+    if( !item ) {
+        return elts;
+    }
+
+    // if item is in ALL, returns all the elements of all
+    // labels it belongs to
+    if( item->QStandardItem::parent() == all_item_ ) {
+        const TagItemList& all_items = image_image_ref_[ item->fullpath() ];
+        for( TagItemList::const_iterator tag_itr = all_items.begin(); tag_itr != all_items.end(); ++tag_itr ) {
+            elts.append( (*tag_itr)->elements() );
+        }
+
+    } else {
+        elts.append( item->elements() );
+
+    }
+
+    return elts;
 }
 
 QList<TagItem::Elements> TagModel::get_all_tags() const
