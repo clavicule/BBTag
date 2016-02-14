@@ -66,9 +66,16 @@ public:
         const QModelIndex& index
     ) const;
 
+    // get the element corresponding to the given image and label
+    // there can be at most one element
+    TagItem::Elements get_element(
+        const QString& fullpath,
+        const QString& label
+    );
+
     // returns the elements corresponding to the given index if not item under ALL
     // returns one element per label if item belongs to ALL and not a specific label
-    // returns an empty list if index does not correspond to an image item
+    // returns an empty list if index does not correspond to a valid index
     QList<TagItem::Elements> get_elements(
         const QModelIndex& index
     ) const;

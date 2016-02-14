@@ -62,7 +62,7 @@ void TagViewer::paintEvent(
         p.drawText(
             QRectF( rect() ),
             "Image cannot be displayed. Check:\n"
-            " - only one image is selected\n"
+            " - the same image is selected among the multiple selection (it's ok to select labels)\n"
             " - the image file is still at the same disk location when imported\n"
             " - the image format is valid and/or the file is not corrupted ",
             options
@@ -72,7 +72,7 @@ void TagViewer::paintEvent(
     }
 
     QFont font;
-    font.setPointSize( 8 );
+    font.setPointSize( 10 );
     p.setFont( font );
 
     // draw bounding boxes

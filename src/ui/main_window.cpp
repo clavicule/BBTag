@@ -150,7 +150,7 @@ MainWindow::MainWindow(
     connect( remove_button, SIGNAL( clicked() ), this, SLOT( remove_images() ) );
 
     connect( tag_view_->selectionModel(), SIGNAL( selectionChanged(QItemSelection,QItemSelection) ), this, SLOT( update_viewer() ) );
-    connect( label_selector_, SIGNAL( activated(int) ), this, SLOT( set_viewer_tag_options() ) );
+    connect( label_selector_, SIGNAL( currentIndexChanged(int) ), this, SLOT( set_viewer_tag_options() ) );
     connect( tag_button, SIGNAL( toggled(bool) ), tag_viewer_, SLOT( set_tagging_status(bool) ) );
 }
 
@@ -223,6 +223,8 @@ void MainWindow::remove_images()
     }
 
     tag_model_->remove_items( selection_model->selectedRows() );
+    update_tag_selector();
+    update_viewer();
 }
 
 void MainWindow::update_viewer()
@@ -231,30 +233,67 @@ void MainWindow::update_viewer()
     QList<TagViewer::TagDisplayElement> display_elements;
 
     QItemSelectionModel* selection_model = tag_view_->selectionModel();
-    if( selection_model ) {
-        QModelIndexList selection = selection_model->selectedRows();
+    QModelIndexList selection = selection_model? selection_model->selectedRows() : QModelIndexList();
 
-        if( selection.count() == 1 ) {
-            const QModelIndex& index = selection.first();
+    // iterate through the selection:
+    // if multiple selection, check that all selected item reference to the same image (fullpath)
+    // otherwise null data is sent to the viewer
+    // in case of a label name being selected, consider the same image belonging to that label is selected
 
-            pix.load( tag_model_->get_fullpath( index ) );
-            QList<TagItem::Elements> item_elts = tag_model_->get_elements( index );
-            for( QList<TagItem::Elements>::iterator elt_itr = item_elts.begin(); elt_itr != item_elts.end(); ++elt_itr ) {
-                const TagItem::Elements& tag_elt = *elt_itr;
+    // get the first item that has a fullpath
+    QString fullpath_ref;
+    for( QModelIndexList::iterator idx_itr = selection.begin(); idx_itr != selection.end(); ++idx_itr ) {
+        QString first_fullpath = tag_model_->get_fullpath( *idx_itr );
+        if( !first_fullpath.isEmpty() ) {
+            fullpath_ref = first_fullpath;
+            break;
+        }
+    }
 
-                TagViewer::TagDisplayElement tag;
+    for( QModelIndexList::iterator idx_itr = selection.begin(); idx_itr != selection.end(); ++idx_itr ) {
+        // early stop and avoid uncessary looping
+        // it means several different images are part of the selection
+        if( fullpath_ref == QString::null ) {
+            break;
+        }
+
+        QList<TagItem::Elements> item_elts = tag_model_->get_elements( *idx_itr );
+
+        for( QList<TagItem::Elements>::iterator elt_itr = item_elts.begin(); elt_itr != item_elts.end(); ++elt_itr ) {
+            const TagItem::Elements& tag_elt = *elt_itr;
+
+            QString cur_fullpath = tag_elt._fullpath;
+            if( !cur_fullpath.isEmpty() && fullpath_ref != cur_fullpath ) {
+                // invalid multiple selection
+                fullpath_ref = QString::null;
+                display_elements.clear();
+                break;
+            }
+
+            TagViewer::TagDisplayElement tag;
+
+            // if fullpath is empty, we are dealing with a label name
+            // therefore we need to find the item within that label
+            if( cur_fullpath.isEmpty() ) {
+                TagItem::Elements elt_from_label = tag_model_->get_element( fullpath_ref, tag_elt._label );
+                tag._color = elt_from_label._color;
+                tag._label = elt_from_label._label;
+                tag._bbox = elt_from_label._bbox;
+
+            } else {
                 tag._color = tag_elt._color;
                 tag._label = tag_elt._label;
                 tag._bbox = tag_elt._bbox;
-
-                display_elements.append( tag );
             }
+
+            display_elements.append( tag );
         }
     }
 
     // ok to send a null pixmap
     // the viewer will recognize that
     // and display a message instead
+    pix.load( fullpath_ref );
     tag_viewer_->set_image( pix );
     tag_viewer_->set_overlay_elements( display_elements );
     tag_viewer_->update();
@@ -271,6 +310,8 @@ void MainWindow::update_tag_selector()
         label_selector_->insertItem( idx, tag._label );
         label_selector_->setItemData( idx, QVariant( tag._color ), Qt::DecorationRole );
     }
+
+    set_viewer_tag_options();
 }
 
 void MainWindow::set_viewer_tag_options()

@@ -65,7 +65,7 @@ void TagModel::remove_items(
     )
 {
 
-    QModelIndexList index_to_remove;
+    QSet<QModelIndex> index_to_remove;
     for( QModelIndexList::const_iterator idx_itr = index_list.begin(); idx_itr != index_list.end(); ++idx_itr ) {
         const QModelIndex& idx = *idx_itr;
         if( !idx.isValid() ) {
@@ -94,7 +94,7 @@ void TagModel::remove_items(
             if( parent_item == all_item_ ) {
                 while( !ref_image_list.isEmpty() ) {
                     TagItem* ref = ref_image_list.takeLast();
-                    index_to_remove.append( ref->index() );
+                    index_to_remove.insert( ref->index() );
                 }
                 image_label_ref_.remove( fullpath );
                 image_image_ref_.remove( fullpath );
@@ -106,7 +106,7 @@ void TagModel::remove_items(
 
             } else {
                 // unref itself
-                index_to_remove.append( item->index() );
+                index_to_remove.insert( item->index() );
                 ref_label_list.removeAll( parent_item );
                 ref_image_list.removeAll( item );
 
@@ -129,7 +129,7 @@ void TagModel::remove_items(
                 image_label_ref_[ image_item->fullpath() ].removeAll( item );
                 image_image_ref_[ image_item->fullpath() ].removeAll( image_item );
             }
-            index_to_remove.append( item->index() );
+            index_to_remove.insert( item->index() );
 
         }
     }
@@ -137,11 +137,11 @@ void TagModel::remove_items(
     // sort indices from last to first
     // otherwise selection indexing becomes invalid
     // --> using STL - qSort and other QtAlgo are obsolete
+    QModelIndexList list_to_process = index_to_remove.toList();
+    std::sort( list_to_process.begin(), list_to_process.end() );
 
-    std::sort( index_to_remove.begin(), index_to_remove.end() );
-
-    for( int idx_itr = index_to_remove.count() - 1; idx_itr >= 0; --idx_itr ) {
-        const QModelIndex& idx = index_to_remove.at( idx_itr );
+    for( int idx_itr = list_to_process.count() - 1; idx_itr >= 0; --idx_itr ) {
+        const QModelIndex& idx = list_to_process.at( idx_itr );
 
         QStandardItem* item = model_->itemFromIndex( idx );
         if( !item ) {
@@ -188,6 +188,31 @@ QString TagModel::get_fullpath(
     }
 
     return item->fullpath();
+}
+
+TagItem::Elements TagModel::get_element(
+       const QString& fullpath,
+        const QString& label
+    )
+{
+    if( fullpath.isEmpty() || label.isEmpty() ) {
+        return TagItem::Elements();
+    }
+
+    if( !image_image_ref_.contains( fullpath ) ) {
+        return TagItem::Elements();
+    }
+
+    const TagItemList items = image_image_ref_[ fullpath ];
+    for( TagItemList::const_iterator item_itr = items.begin(); item_itr != items.end(); ++item_itr ) {
+        TagItem* image = *item_itr;
+
+        if( image->label() == label ) {
+            return image->elements();
+        }
+    }
+
+    return TagItem::Elements();
 }
 
 QList<TagItem::Elements> TagModel::get_elements(
