@@ -115,7 +115,7 @@ void TagModel::remove_items(
                 // check if image is not reference is any other tag
                 // in that case, it is added back to UNTAGGED
                 TagItem* item_as_untagged = get_tag_item( fullpath, UNTAGGED );
-                if( !item_as_untagged ) {
+                if( !item_as_untagged && image_label_ref_[ fullpath ].count() == 1 ) {
                     add_image_to_label( untagged_item_, QFileInfo( fullpath ) );
                 }
             }
@@ -129,14 +129,16 @@ void TagModel::remove_items(
                     // it should not happen but we never know...
                     continue;
                 }
-                image_label_ref_[ image_item->fullpath() ].removeAll( item );
-                image_image_ref_[ image_item->fullpath() ].removeAll( image_item );
+
+                QString image_fullpath = image_item->fullpath();
+                image_label_ref_[ image_fullpath ].removeAll( item );
+                image_image_ref_[ image_fullpath ].removeAll( image_item );
 
                 // check if image is not reference is any other tag
                 // in that case, it is added back to UNTAGGED
-                TagItem* item_as_untagged = get_tag_item( image_item->fullpath(), UNTAGGED );
-                if( !item_as_untagged ) {
-                    add_image_to_label( untagged_item_, QFileInfo( image_item->fullpath() ) );
+                TagItem* item_as_untagged = get_tag_item( image_fullpath, UNTAGGED );
+                if( !item_as_untagged && image_label_ref_[ image_fullpath ].count() == 1 ) {
+                    add_image_to_label( untagged_item_, QFileInfo( image_fullpath ) );
                 }
             }
             index_to_remove.insert( item->index() );
