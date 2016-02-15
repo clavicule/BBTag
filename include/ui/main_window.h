@@ -7,6 +7,7 @@
 class QTreeView;
 class QFileSystemModel;
 class QComboBox;
+class QPushButton;
 class TagScrollView;
 class TagViewer;
 class TagModel;
@@ -42,6 +43,12 @@ protected slots:
     // based on the current tag selection
     void set_viewer_tag_options();
 
+    // tag the current image (if valid selection)
+    // with the given bounding box
+    void tag_image(
+        const QRect& bbox
+    );
+
 protected:
     // returns the list of supported image format files
     static QStringList valid_image_format();
@@ -49,9 +56,17 @@ protected:
     // update the tag selector to be sync'ed with label list
     void update_tag_selector();
 
+    // return the fullpath of the selected image.
+    // if more than one, returns null.
+    QString get_image_from_index_list(
+        const QModelIndexList& index_list
+    ) const;
+
 private:
     QFileSystemModel* dir_model_;
     QTreeView* dir_view_;
+
+    QPushButton* tag_button_;
 
     TagModel* tag_model_;
     QTreeView* tag_view_;

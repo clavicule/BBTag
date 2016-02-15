@@ -23,6 +23,10 @@ class QStandardItemModel;
 class TagModel
 {
 public:
+    static QString ALL;
+    static QString UNTAGGED;
+
+public:
     // does nothing
     TagModel(
         QObject* parent = 0
@@ -84,12 +88,25 @@ public:
     // excluding UNTAGGED and ALL
     QList<TagItem::Elements> get_all_tags() const;
 
+    void add_tag_to_label(
+        const QString& fullpath,
+        const QString& label,
+        const QRect& tag
+    );
+
 protected:
     // internal use: adds a new image item in the model
     // and reference the label associated with it
-    void add_image_to_label(
+    TagItem* add_image_to_label(
         TagItem* label_item,
         const QFileInfo& image_file
+    );
+
+    // get the item associated to the given tag and fullpath
+    // returns null if no match
+    TagItem* get_tag_item(
+        const QString& fullpath,
+        const QString& label
     );
 
 private:

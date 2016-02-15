@@ -20,6 +20,8 @@ void TagViewer::set_tagging_status(
     )
 {
     tagging_ = activate;
+    tag_start_ = QPoint( 0, 0 );
+    tag_end_ = QPoint( 0, 0 );
 }
 
 void TagViewer::enforce_boundary_conditions(
@@ -102,11 +104,7 @@ void TagViewer::mousePressEvent(
         QMouseEvent* e
     )
 {
-    if( !tagging_ ) {
-        return;
-    }
-
-    if( e->button() != Qt::LeftButton ) {
+    if( !tagging_ || e->button() != Qt::LeftButton ) {
         return;
     }
 
@@ -131,10 +129,13 @@ void TagViewer::mouseReleaseEvent(
         QMouseEvent* e
      )
 {
-    if( !tagging_ ) {
+    if( !tagging_ || e->button() != Qt::LeftButton ) {
         return;
     }
 
     tag_end_ = e->pos();
     enforce_boundary_conditions( tag_end_ );
+    emit( tagged( QRect( tag_start_, tag_end_ ) ) );
+    tag_start_ = QPoint( 0, 0 );
+    tag_end_ = QPoint( 0, 0 );
 }

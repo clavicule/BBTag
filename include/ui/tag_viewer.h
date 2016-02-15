@@ -44,6 +44,13 @@ public:
         const QColor& current_color
     );
 
+signals:
+    // emitted when left mouse button is released
+    // while tagging was in progress
+    void tagged(
+        const QRect& bbox
+    );
+
 public slots:
     // activate or deactivate the tagging tool
     void set_tagging_status(

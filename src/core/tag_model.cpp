@@ -3,6 +3,8 @@
 
 #include <QStandardItemModel>
 
+QString TagModel::ALL = "<ALL>";
+QString TagModel::UNTAGGED = "<UNTAGGED>";
 
 TagModel::TagModel(
         QObject *parent
@@ -19,8 +21,8 @@ TagModel::TagModel(
     // default tree has 2 labels:
     // - untagged: images that have not been tagged at all
     // - all: all images imported regardless of their tag status
-    all_item_ = new TagItem( Qt::transparent, "<ALL>" );
-    untagged_item_ = new TagItem( Qt::transparent, "<UNTAGGED>" );
+    all_item_ = new TagItem( Qt::transparent, ALL );
+    untagged_item_ = new TagItem( Qt::transparent, UNTAGGED );
 
     root->appendRow( untagged_item_ );
     root->appendRow( all_item_ );
@@ -112,7 +114,8 @@ void TagModel::remove_items(
 
                 // check if image is not reference is any other tag
                 // in that case, it is added back to UNTAGGED
-                if( ref_label_list.isEmpty() ) {
+                TagItem* item_as_untagged = get_tag_item( fullpath, UNTAGGED );
+                if( !item_as_untagged ) {
                     add_image_to_label( untagged_item_, QFileInfo( item->fullpath() ) );
                 }
             }
@@ -153,25 +156,27 @@ void TagModel::remove_items(
     }
 }
 
-void TagModel::add_image_to_label(
+TagItem* TagModel::add_image_to_label(
         TagItem* label_item,
         const QFileInfo& image_file
     )
 {
     if( !label_item || !image_file.exists() ) {
-        return;
+        return 0;
     }
 
     QString image_filename = image_file.absoluteFilePath();
 
     // ensure the image is not already imported
     if( image_label_ref_[ image_filename ].contains( label_item ) ) {
-        return;
+        return 0;
     }
     TagItem* new_item = new TagItem( label_item, image_filename );
 
     image_label_ref_[ image_filename ].append( label_item );
     image_image_ref_[ image_filename ].append( new_item );
+
+    return new_item;
 }
 
 QString TagModel::get_fullpath(
@@ -190,17 +195,17 @@ QString TagModel::get_fullpath(
     return item->fullpath();
 }
 
-TagItem::Elements TagModel::get_element(
-       const QString& fullpath,
+TagItem* TagModel::get_tag_item(
+        const QString& fullpath,
         const QString& label
     )
 {
     if( fullpath.isEmpty() || label.isEmpty() ) {
-        return TagItem::Elements();
+        return 0;
     }
 
     if( !image_image_ref_.contains( fullpath ) ) {
-        return TagItem::Elements();
+        return 0;
     }
 
     const TagItemList items = image_image_ref_[ fullpath ];
@@ -208,11 +213,24 @@ TagItem::Elements TagModel::get_element(
         TagItem* image = *item_itr;
 
         if( image->label() == label ) {
-            return image->elements();
+            return image;
         }
     }
 
-    return TagItem::Elements();
+    return 0;
+}
+
+TagItem::Elements TagModel::get_element(
+        const QString& fullpath,
+        const QString& label
+    )
+{
+    TagItem* image = get_tag_item( fullpath, label );
+    if( !image ) {
+        return TagItem::Elements();
+    }
+
+    return image->elements();
 }
 
 QList<TagItem::Elements> TagModel::get_elements(
@@ -259,4 +277,38 @@ QList<TagItem::Elements> TagModel::get_all_tags() const
     }
 
     return tags;
+}
+
+void TagModel::add_tag_to_label(
+    const QString& fullpath,
+    const QString& label,
+    const QRect& tag
+)
+{
+    TagItem* image = get_tag_item( fullpath, label );
+
+    // it is the first tag for this label
+    if( !image ) {
+
+        QList<QStandardItem*> labels = model_->findItems( label, Qt::MatchCaseSensitive, 0 );
+        if( labels.count() != 1 ) {
+            // it shouldn't be possible but we never know...
+            return;
+        }
+
+        image = add_image_to_label( dynamic_cast<TagItem*>(labels.first()), QFileInfo( fullpath ) );
+        if( !image ) {
+            return;
+        }
+    }
+
+    image->add_tag( tag );
+
+    // first tag for any label --> remove it from untagged
+    TagItem* item_as_untagged = get_tag_item( fullpath, UNTAGGED );
+    if( item_as_untagged ) {
+        image_label_ref_[ fullpath ].removeAll( untagged_item_ );
+        image_image_ref_[ fullpath ].removeAll( item_as_untagged );
+        model_->removeRow( item_as_untagged->index().row(), untagged_item_->index() );
+    }
 }
