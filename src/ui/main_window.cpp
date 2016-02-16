@@ -13,6 +13,8 @@
 #include <QImageReader>
 #include <QInputDialog>
 #include <QComboBox>
+#include <QGuiApplication>
+#include <QScreen>
 
 
 MainWindow::MainWindow(
@@ -56,7 +58,6 @@ MainWindow::MainWindow(
     // widget #2
     // middle widget in splitter is image tag tree
     QWidget* image_tag_widget = new QWidget( splitter );
-    QHBoxLayout* image_tag_layout = new QHBoxLayout();
 
     // setup add/remove buttons to add/remove image files from the list of images to tag
     // Icons unmodified under CreativeCommon Attribution-NonCommercial 3.0 Unported license
@@ -95,6 +96,7 @@ MainWindow::MainWindow(
     tag_tree_layout->addLayout( tag_tree_button_layout );
     tag_tree_layout->addWidget( tag_view_ );
 
+    QHBoxLayout* image_tag_layout = new QHBoxLayout();
     image_tag_layout->addWidget( import_button );
     image_tag_layout->addLayout( tag_tree_layout );
     image_tag_widget->setLayout( image_tag_layout );
@@ -113,18 +115,44 @@ MainWindow::MainWindow(
     tag_button_->setShortcut( QKeySequence( Qt::Key_T ) );
     tag_button_->setToolTip( "Use t-key as shortcut" );
 
-    QHBoxLayout* viewer_buttons_layout = new QHBoxLayout();
-    viewer_buttons_layout->addWidget( label_selector_ );
-    viewer_buttons_layout->addWidget( tag_button_ );
-    viewer_buttons_layout->setStretchFactor( label_selector_, 2 );
+    QHBoxLayout* tag_buttons_layout = new QHBoxLayout();
+    tag_buttons_layout->addWidget( label_selector_ );
+    tag_buttons_layout->addWidget( tag_button_ );
+    tag_buttons_layout->setStretchFactor( label_selector_, 2 );
 
-    tag_viewer_ = new TagViewer( tag_viewer_widget );
     tag_scroll_view_ = new TagScrollView( tag_viewer_widget );
+    tag_viewer_ = new TagViewer( tag_scroll_view_ );
     tag_scroll_view_->setWidget( tag_viewer_ );
 
+    QPushButton* zoom_in_button = new QPushButton( QIcon( ":/pixmaps/zoom_in.png" ), "", tag_viewer_widget );
+    zoom_in_button->setFixedSize( 32, 32 );
+    zoom_in_button->setIconSize( QSize( 32, 32 ) );
+    zoom_in_button->setToolTip( "Use ctrl+mouse wheel up as shortcut" );
+
+    QPushButton* zoom_out_button = new QPushButton( QIcon( ":/pixmaps/zoom_out.png" ), "", tag_viewer_widget );
+    zoom_out_button->setFixedSize( 32, 32 );
+    zoom_out_button->setIconSize( QSize( 32, 32 ) );
+    zoom_out_button->setToolTip( "Use ctrl+mouse wheel down as shortcut" );
+
+    QPushButton* fit_to_view_button = new QPushButton( QIcon( ":/pixmaps/fit_to_view.png" ), "", tag_viewer_widget );
+    fit_to_view_button->setFixedSize( 32, 32 );
+    fit_to_view_button->setIconSize( QSize( 32, 32 ) );
+    fit_to_view_button->setShortcut( QKeySequence( Qt::Key_F ) );
+    fit_to_view_button->setToolTip( "Use f-key as shortcut" );
+
+    QVBoxLayout* viewer_buttons_layout = new QVBoxLayout();
+    viewer_buttons_layout->addWidget( zoom_in_button );
+    viewer_buttons_layout->addWidget( zoom_out_button );
+    viewer_buttons_layout->addWidget( fit_to_view_button );
+    viewer_buttons_layout->addStretch();
+
+    QHBoxLayout* viewer_layout = new QHBoxLayout();
+    viewer_layout->addWidget( tag_scroll_view_ );
+    viewer_layout->addLayout( viewer_buttons_layout );
+
     QVBoxLayout* tag_viewer_layout = new QVBoxLayout();
-    tag_viewer_layout->addLayout( viewer_buttons_layout );
-    tag_viewer_layout->addWidget( tag_scroll_view_ );
+    tag_viewer_layout->addLayout( tag_buttons_layout );
+    tag_viewer_layout->addLayout( viewer_layout );
     tag_viewer_widget->setLayout( tag_viewer_layout );
 
     // --------
@@ -136,13 +164,14 @@ MainWindow::MainWindow(
     splitter->setStretchFactor( 0, 1 );
     splitter->setStretchFactor( 1, 1 );
     splitter->setStretchFactor( 2, 3 );
+    splitter->setCollapsible( 1, false );
 
     QList<int> sizes;
     sizes << 300 << 300 << 400;
     splitter->setSizes( sizes );
 
     setCentralWidget( splitter );
-    resize( 1000, 600 );
+    resize( QGuiApplication::primaryScreen()->availableSize() * 0.8 );
 
     // setup connections
     connect( import_button, SIGNAL( clicked() ), this, SLOT( import_images() ) );
@@ -153,6 +182,10 @@ MainWindow::MainWindow(
     connect( label_selector_, SIGNAL( currentIndexChanged(int) ), this, SLOT( set_viewer_tag_options() ) );
     connect( tag_button_, SIGNAL( toggled(bool) ), tag_viewer_, SLOT( set_tagging_status(bool) ) );
     connect( tag_viewer_, SIGNAL( tagged(QRect) ), this, SLOT( tag_image(QRect) ) );
+
+    connect( zoom_in_button, SIGNAL( clicked() ), tag_scroll_view_, SLOT( zoom_in() ) );
+    connect( zoom_out_button, SIGNAL( clicked() ), tag_scroll_view_, SLOT( zoom_out() ) );
+    connect( fit_to_view_button, SIGNAL( clicked() ), tag_scroll_view_, SLOT( fit_to_view() ) );
 
     update_tag_selector();
 }
@@ -262,6 +295,10 @@ void MainWindow::update_viewer()
     QList<TagViewer::TagDisplayElement> display_elements;
 
     QItemSelectionModel* selection_model = tag_view_->selectionModel();
+    if( !selection_model ) {
+        return;
+    }
+
     QModelIndexList selection = selection_model? selection_model->selectedRows() : QModelIndexList();
 
     // iterate through the selection:
@@ -351,6 +388,10 @@ void MainWindow::tag_image(
 {
     // ensure and get the single image referenced in the selection
     QItemSelectionModel* selection_model = tag_view_->selectionModel();
+    if( !selection_model ) {
+        return;
+    }
+
     QModelIndexList selection = selection_model? selection_model->selectedRows() : QModelIndexList();
 
     QString fullpath_ref = get_image_from_index_list( selection );
@@ -373,5 +414,6 @@ void MainWindow::tag_image(
         current_selection.merge( QItemSelection( index, index ), QItemSelectionModel::Select );
         selection_model->select( current_selection, QItemSelectionModel::Select );
     }
+
     update_viewer();
 }

@@ -22,6 +22,9 @@ void TagViewer::set_tagging_status(
     tagging_ = activate;
     tag_start_ = QPoint( 0, 0 );
     tag_end_ = QPoint( 0, 0 );
+
+    QCursor cursor = activate? QCursor( Qt::CrossCursor ) : QCursor( Qt::ArrowCursor );
+    setCursor( cursor );
 }
 
 void TagViewer::enforce_boundary_conditions(
@@ -48,21 +51,35 @@ void TagViewer::enforce_boundary_conditions(
     }
 }
 
+float TagViewer::scale_factor() const
+{
+    float scale_factor = 1.;
+
+    if( !pix_.isNull() && !size().isNull() ) {
+        scale_factor = (float)(size().width()) / (float)(pix_.width());
+    }
+
+    return scale_factor;
+}
+
 void TagViewer::paintEvent(
         QPaintEvent* /*e*/
     )
 {
     QPainter p( this );
 
-    if( !pix_.isNull() ) {
-        p.drawPixmap( 0, 0, pix_ );
+    float scale_f = scale_factor();
+    QRect drawing_area( 0, 0, size().width(), size().height() );
+
+    if( !pix_.isNull() && !size().isNull() ) {
+        p.drawPixmap( drawing_area, pix_ );
 
     } else {
         QTextOption options( Qt::AlignLeft );
         options.setWrapMode( QTextOption::WordWrap );
         p.setPen( QPen( Qt::red, 4 ) );
         p.drawText(
-            QRectF( rect() ),
+            QRectF( drawing_area ),
             "Image cannot be displayed. Check:\n"
             " - the same image is selected among the multiple selection (it's ok to select labels)\n"
             " - the image file is still at the same disk location when imported\n"
@@ -85,8 +102,10 @@ void TagViewer::paintEvent(
         p.setPen( QPen( tag._color, 2 ) );
 
         for( QList<QRect>::const_iterator bbox_itr = bbox.begin(); bbox_itr != bbox.end(); ++bbox_itr ) {
-            p.drawRect( *bbox_itr );
-            p.drawText( (*bbox_itr).x(), (*bbox_itr).y(), tag._label );
+            const QRect& box_rect = *bbox_itr;
+            QRect scaled_box( scale_f * box_rect.topLeft(), scale_f * box_rect.bottomRight() );
+            p.drawRect( scaled_box );
+            p.drawText( scaled_box.x(), scaled_box.y(), tag._label );
         }
     }
 
@@ -135,7 +154,10 @@ void TagViewer::mouseReleaseEvent(
 
     tag_end_ = e->pos();
     enforce_boundary_conditions( tag_end_ );
-    emit( tagged( QRect( tag_start_, tag_end_ ) ) );
+
+    float scale_f = scale_factor();
+    emit( tagged( QRect( tag_start_ / scale_f, tag_end_ / scale_f ) ) );
+
     tag_start_ = QPoint( 0, 0 );
     tag_end_ = QPoint( 0, 0 );
 }

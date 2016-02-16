@@ -62,6 +62,8 @@ protected:
         QPoint& p
     );
 
+    float scale_factor() const;
+
 // re-implementation from QWidget
 protected:
     virtual void paintEvent(

@@ -1,8 +1,11 @@
-<!DOCTYPE RCC><RCC version="1.0">
-<qresource>
-	<file>pixmaps/import.png</file>
-	<file>pixmaps/add.png</file>
-	<file>pixmaps/remove.png</file>
-	<file>pixmaps/tag.png</file>
-</qresource>
+<RCC>
+    <qresource prefix="/">
+        <file>pixmaps/import.png</file>
+        <file>pixmaps/add.png</file>
+        <file>pixmaps/remove.png</file>
+        <file>pixmaps/tag.png</file>
+        <file>pixmaps/fit_to_view.png</file>
+        <file>pixmaps/zoom_in.png</file>
+        <file>pixmaps/zoom_out.png</file>
+    </qresource>
 </RCC>
