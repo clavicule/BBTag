@@ -364,6 +364,14 @@ void MainWindow::tag_image(
         return;
     }
 
-    tag_model_->add_tag_to_label( fullpath_ref, label, bbox );
+    QModelIndex index = tag_model_->add_tag_to_label( fullpath_ref, label, bbox );
+    // add to current selection
+    // useful for instance when tagging from untagged or from another label
+    // to avoid deselection of current image
+    if( index.isValid() ) {
+        QItemSelection current_selection = selection_model->selection();
+        current_selection.merge( QItemSelection( index, index ), QItemSelectionModel::Select );
+        selection_model->select( current_selection, QItemSelectionModel::Select );
+    }
     update_viewer();
 }

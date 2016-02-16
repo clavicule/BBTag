@@ -287,7 +287,7 @@ QList<TagItem::Elements> TagModel::get_all_tags() const
     return tags;
 }
 
-void TagModel::add_tag_to_label(
+QModelIndex TagModel::add_tag_to_label(
     const QString& fullpath,
     const QString& label,
     const QRect& tag
@@ -301,12 +301,12 @@ void TagModel::add_tag_to_label(
         QList<QStandardItem*> labels = model_->findItems( label, Qt::MatchCaseSensitive, 0 );
         if( labels.count() != 1 ) {
             // it shouldn't be possible but we never know...
-            return;
+            return QModelIndex();
         }
 
         image = add_image_to_label( dynamic_cast<TagItem*>(labels.first()), QFileInfo( fullpath ) );
         if( !image ) {
-            return;
+            return QModelIndex();
         }
     }
 
@@ -319,4 +319,6 @@ void TagModel::add_tag_to_label(
         image_image_ref_[ fullpath ].removeAll( item_as_untagged );
         model_->removeRow( item_as_untagged->index().row(), untagged_item_->index() );
     }
+
+    return image->index();
 }

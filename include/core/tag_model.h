@@ -88,7 +88,7 @@ public:
     // excluding UNTAGGED and ALL
     QList<TagItem::Elements> get_all_tags() const;
 
-    void add_tag_to_label(
+    QModelIndex add_tag_to_label(
         const QString& fullpath,
         const QString& label,
         const QRect& tag
