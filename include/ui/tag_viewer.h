@@ -101,11 +101,12 @@ void TagViewer::set_image(
         const QPixmap& pix
     )
 {
+    QSize current_size = pix_.size();
     pix_ = pix;
 
     if( pix_.isNull() ) {
         resize( 400, 100 );
-    } else {
+    } else if( current_size != pix.size() ) {
         resize( pix.size() );
     }
 }

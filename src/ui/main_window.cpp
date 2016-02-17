@@ -405,7 +405,13 @@ void MainWindow::tag_image(
         return;
     }
 
+    // block viewer update as selection
+    // will change --> allows viewer
+    // to keep the same pixmap and scale factor
+    selection_model->blockSignals( true );
     QModelIndex index = tag_model_->add_tag_to_label( fullpath_ref, label, bbox );
+    selection_model->blockSignals( false );
+
     // add to current selection
     // useful for instance when tagging from untagged or from another label
     // to avoid deselection of current image
