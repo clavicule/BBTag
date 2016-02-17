@@ -35,9 +35,6 @@ protected:
         QWheelEvent* e
     ) Q_DECL_OVERRIDE;
 
-private:
-    float scale_factor_;
-
 };
 
 #endif // TAG_SCROLL_VIEW_H

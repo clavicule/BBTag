@@ -5,7 +5,7 @@
 
 TagScrollView::TagScrollView(
         QWidget* parent
-    ) : QScrollArea( parent ), scale_factor_( 1. )
+    ) : QScrollArea( parent )
 {
     setBackgroundRole( QPalette::Dark );
     setAutoFillBackground( true );
@@ -18,7 +18,8 @@ TagScrollView::~TagScrollView()
 void TagScrollView::zoom_in()
 {
     // safeguard
-    if( scale_factor_ > 10. ) {
+    QSize new_size = 1.25 * widget()->size();
+    if( qMax( new_size.width(), new_size.height() ) > 10 * qMax( size().width(), size().height() ) ) {
         return;
     }
 
@@ -28,7 +29,8 @@ void TagScrollView::zoom_in()
 void TagScrollView::zoom_out()
 {
     // safeguard
-    if( scale_factor_ < 0.05 ) {
+    QSize new_size = 0.8 * widget()->size();
+    if( qMin( new_size.width(), new_size.height() ) < 10 ) {
         return;
     }
 
@@ -50,7 +52,6 @@ void TagScrollView::scale_by(
         return;
     }
 
-    scale_factor_ *= factor;
     widget()->resize( widget()->size() * factor );
 
     adjust_scrollbars( factor );
