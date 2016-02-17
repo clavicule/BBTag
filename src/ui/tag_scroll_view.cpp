@@ -37,7 +37,9 @@ void TagScrollView::zoom_out()
 
 void TagScrollView::fit_to_view()
 {
-    widget()->adjustSize();
+    QSize widget_size = widget()->size();
+    widget_size.scale( size(), Qt::KeepAspectRatio );
+    widget()->resize( widget_size );
 }
 
 void TagScrollView::scale_by(
