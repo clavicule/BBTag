@@ -413,6 +413,7 @@ void MainWindow::tag_image(
         QItemSelection current_selection = selection_model->selection();
         current_selection.merge( QItemSelection( index, index ), QItemSelectionModel::Select );
         selection_model->select( current_selection, QItemSelectionModel::Select );
+        tag_view_->setExpanded( index.parent(), true );
     }
 
     update_viewer();
