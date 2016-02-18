@@ -63,6 +63,10 @@ public:
         const QRect& bbox
     );
 
+    inline void remove_tag(
+        const QRect& bbox
+    );
+
     // returns the filename with extension
     inline QString filename() const;
 
@@ -98,6 +102,13 @@ void TagItem::add_tag(
     )
 {
     bbox_.append( bbox );
+}
+
+void TagItem::remove_tag(
+        const QRect& bbox
+    )
+{
+    bbox_.removeOne( bbox );
 }
 
 QString TagItem::filename() const

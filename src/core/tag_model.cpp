@@ -288,10 +288,10 @@ QList<TagItem::Elements> TagModel::get_all_tags() const
 }
 
 QModelIndex TagModel::add_tag_to_label(
-    const QString& fullpath,
-    const QString& label,
-    const QRect& tag
-)
+        const QString& fullpath,
+        const QString& label,
+        const QRect& tag
+    )
 {
     TagItem* image = get_tag_item( fullpath, label );
 
@@ -321,4 +321,31 @@ QModelIndex TagModel::add_tag_to_label(
     }
 
     return image->index();
+}
+
+QModelIndex TagModel::remove_tag_from_label(
+        const QString& fullpath,
+        const QString& label,
+        const QRect& tag
+    )
+{
+    TagItem* image = get_tag_item( fullpath, label );
+    if( !image ) {
+        return QModelIndex();
+    }
+
+    QModelIndex index = image->index();
+    image->remove_tag( tag );
+
+    // it is the last tag for this label
+    if( image->tags().count() == 0 ) {
+        QModelIndexList item;
+        item.append( index );
+        remove_items( item );
+
+        TagItem* untagged_item = get_tag_item( fullpath, UNTAGGED );
+        index = untagged_item? untagged_item->index() : QModelIndex();
+    }
+
+    return index;
 }

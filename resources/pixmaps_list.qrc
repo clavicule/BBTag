@@ -7,5 +7,6 @@
         <file>pixmaps/fit_to_view.png</file>
         <file>pixmaps/zoom_in.png</file>
         <file>pixmaps/zoom_out.png</file>
+        <file>pixmaps/untag.png</file>
     </qresource>
 </RCC>

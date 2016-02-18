@@ -88,7 +88,15 @@ public:
     // excluding UNTAGGED and ALL
     QList<TagItem::Elements> get_all_tags() const;
 
+    // adds a label tag with the given bounding box to the given image
     QModelIndex add_tag_to_label(
+        const QString& fullpath,
+        const QString& label,
+        const QRect& tag
+    );
+
+    // removes the tag corresponding to the given bounding box and label
+    QModelIndex remove_tag_from_label(
         const QString& fullpath,
         const QString& label,
         const QRect& tag

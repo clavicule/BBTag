@@ -9,6 +9,7 @@
 #include <QTreeView>
 #include <QSplitter>
 #include <QPushButton>
+#include <QButtonGroup>
 #include <QScrollArea>
 #include <QImageReader>
 #include <QInputDialog>
@@ -108,16 +109,29 @@ MainWindow::MainWindow(
     QWidget* tag_viewer_widget = new QWidget( splitter );
     label_selector_ = new QComboBox( tag_viewer_widget );
 
+    QButtonGroup* tag_tools = new QButtonGroup( this );
+    tag_tools->setExclusive( true );
+
     tag_button_ = new QPushButton( QIcon( ":/pixmaps/tag.png" ), "", tag_viewer_widget );
     tag_button_->setCheckable( true );
     tag_button_->setFixedSize( 32, 32 );
     tag_button_->setIconSize( QSize( 32, 32 ) );
     tag_button_->setShortcut( QKeySequence( Qt::Key_T ) );
     tag_button_->setToolTip( "Use t-key as shortcut" );
+    tag_tools->addButton( tag_button_ );
+
+    QPushButton* untag_button = new QPushButton( QIcon( ":/pixmaps/untag.png" ), "", tag_viewer_widget );
+    untag_button->setCheckable( true );
+    untag_button->setFixedSize( 32, 32 );
+    untag_button->setIconSize( QSize( 32, 32 ) );
+    untag_button->setShortcut( QKeySequence( Qt::Key_D ) );
+    untag_button->setToolTip( "Use d-key as shortcut" );
+    tag_tools->addButton( untag_button );
 
     QHBoxLayout* tag_buttons_layout = new QHBoxLayout();
     tag_buttons_layout->addWidget( label_selector_ );
     tag_buttons_layout->addWidget( tag_button_ );
+    tag_buttons_layout->addWidget( untag_button );
     tag_buttons_layout->setStretchFactor( label_selector_, 2 );
 
     tag_scroll_view_ = new TagScrollView( tag_viewer_widget );
@@ -181,7 +195,9 @@ MainWindow::MainWindow(
     connect( tag_view_->selectionModel(), SIGNAL( selectionChanged(QItemSelection,QItemSelection) ), this, SLOT( update_viewer() ) );
     connect( label_selector_, SIGNAL( currentIndexChanged(int) ), this, SLOT( set_viewer_tag_options() ) );
     connect( tag_button_, SIGNAL( toggled(bool) ), tag_viewer_, SLOT( set_tagging_status(bool) ) );
+    connect( untag_button, SIGNAL( toggled(bool) ), tag_viewer_, SLOT( set_untagging_status(bool) ) );
     connect( tag_viewer_, SIGNAL( tagged(QRect) ), this, SLOT( tag_image(QRect) ) );
+    connect( tag_viewer_, SIGNAL( untagged(QString,QRect) ), this, SLOT( untag_image(QString, QRect) ) );
 
     connect( zoom_in_button, SIGNAL( clicked() ), tag_scroll_view_, SLOT( zoom_in() ) );
     connect( zoom_out_button, SIGNAL( clicked() ), tag_scroll_view_, SLOT( zoom_out() ) );
@@ -410,6 +426,48 @@ void MainWindow::tag_image(
     // to keep the same pixmap and scale factor
     selection_model->blockSignals( true );
     QModelIndex index = tag_model_->add_tag_to_label( fullpath_ref, label, bbox );
+    selection_model->blockSignals( false );
+
+    // add to current selection
+    // useful for instance when tagging from untagged or from another label
+    // to avoid deselection of current image
+    if( index.isValid() ) {
+        QItemSelection current_selection = selection_model->selection();
+        current_selection.merge( QItemSelection( index, index ), QItemSelectionModel::Select );
+        selection_model->select( current_selection, QItemSelectionModel::Select );
+        tag_view_->setExpanded( index.parent(), true );
+    }
+
+    update_viewer();
+}
+
+void MainWindow::untag_image(
+        const QString& label,
+        const QRect& bbox
+    )
+{
+    if( label.isEmpty() ) {
+        return;
+    }
+
+    // ensure and get the single image referenced in the selection
+    QItemSelectionModel* selection_model = tag_view_->selectionModel();
+    if( !selection_model ) {
+        return;
+    }
+
+    QModelIndexList selection = selection_model? selection_model->selectedRows() : QModelIndexList();
+
+    QString fullpath_ref = get_image_from_index_list( selection );
+    if( fullpath_ref.isEmpty() ) {
+        return;
+    }
+
+    // block viewer update as selection
+    // will change --> allows viewer
+    // to keep the same pixmap and scale factor
+    selection_model->blockSignals( true );
+    QModelIndex index = tag_model_->remove_tag_from_label( fullpath_ref, label, bbox );
     selection_model->blockSignals( false );
 
     // add to current selection

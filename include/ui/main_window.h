@@ -49,6 +49,15 @@ protected slots:
         const QRect& bbox
     );
 
+    // untag the current image (if valid selection)
+    // with the given bounding box and label
+    // label is used to know which tag to remove
+    // (because we can have multi-label selection)
+    void untag_image(
+        const QString& label,
+        const QRect& bbox
+    );
+
 protected:
     // returns the list of supported image format files
     static QStringList valid_image_format();

@@ -51,10 +51,21 @@ signals:
         const QRect& bbox
     );
 
+    // emitted when valid bbox has been picked for deletion
+    void untagged(
+        const QString& label,
+        const QRect& bbox
+    );
+
 public slots:
     // activate or deactivate the tagging tool
     void set_tagging_status(
        bool activate
+    );
+
+    // activate or deactivate the untagging tool
+    void set_untagging_status(
+        bool activate
     );
 
 protected:
@@ -63,6 +74,11 @@ protected:
     );
 
     float scale_factor() const;
+
+    static int shortest_distance(
+        const QPoint& p,
+        const QRect& rect
+    );
 
 // re-implementation from QWidget
 protected:
@@ -84,6 +100,8 @@ protected:
 
 private:
     bool tagging_;
+    bool untagging_;
+
     QPoint tag_start_;
     QPoint tag_end_;
 
