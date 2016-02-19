@@ -16,6 +16,7 @@
 #include <QComboBox>
 #include <QGuiApplication>
 #include <QScreen>
+#include <QLabel>
 
 
 MainWindow::MainWindow(
@@ -83,6 +84,7 @@ MainWindow::MainWindow(
     remove_button->setToolTip( "Use Del key as shortcut");
 
     QHBoxLayout* tag_tree_button_layout = new QHBoxLayout();
+    tag_tree_button_layout->addWidget( new QLabel( "<b>Label</b>", image_tag_widget ) );
     tag_tree_button_layout->addWidget( add_button );
     tag_tree_button_layout->addWidget( remove_button );
     tag_tree_button_layout->addStretch();
@@ -129,6 +131,7 @@ MainWindow::MainWindow(
     tag_tools->addButton( untag_button );
 
     QHBoxLayout* tag_buttons_layout = new QHBoxLayout();
+    tag_buttons_layout->addWidget( new QLabel( "<b>Tag</b>", tag_viewer_widget ) );
     tag_buttons_layout->addWidget( label_selector_ );
     tag_buttons_layout->addWidget( tag_button_ );
     tag_buttons_layout->addWidget( untag_button );
@@ -264,6 +267,7 @@ void MainWindow::add_label()
 
     tag_model_->add_new_label( QColor::fromRgb( r, g, b ), new_label_name );
     update_tag_selector();
+    label_selector_->setCurrentText( new_label_name );
 }
 
 void MainWindow::remove_images()
@@ -326,31 +330,29 @@ void MainWindow::update_viewer()
     QString fullpath_ref = get_image_from_index_list( selection );
     if( !fullpath_ref.isEmpty() ) {
 
-        for( QModelIndexList::iterator idx_itr = selection.begin(); idx_itr != selection.end(); ++idx_itr ) {
-            QList<TagItem::Elements> item_elts = tag_model_->get_elements( *idx_itr );
+        QList<TagItem::Elements> item_elts = tag_model_->get_elements( selection );
 
-            for( QList<TagItem::Elements>::iterator elt_itr = item_elts.begin(); elt_itr != item_elts.end(); ++elt_itr ) {
-                const TagItem::Elements& tag_elt = *elt_itr;
+        for( QList<TagItem::Elements>::iterator elt_itr = item_elts.begin(); elt_itr != item_elts.end(); ++elt_itr ) {
+            const TagItem::Elements& tag_elt = *elt_itr;
 
-                QString cur_fullpath = tag_elt._fullpath;
-                TagViewer::TagDisplayElement tag;
+            QString cur_fullpath = tag_elt._fullpath;
+            TagViewer::TagDisplayElement tag;
 
-                // if fullpath is empty, we are dealing with a label name
-                // therefore we need to find the item within that label
-                if( cur_fullpath.isEmpty() ) {
-                    TagItem::Elements elt_from_label = tag_model_->get_element( fullpath_ref, tag_elt._label );
-                    tag._color = elt_from_label._color;
-                    tag._label = elt_from_label._label;
-                    tag._bbox = elt_from_label._bbox;
+            // if fullpath is empty, we are dealing with a label name
+            // therefore we need to find the item within that label
+            if( cur_fullpath.isEmpty() ) {
+                TagItem::Elements elt_from_label = tag_model_->get_element( fullpath_ref, tag_elt._label );
+                tag._color = elt_from_label._color;
+                tag._label = elt_from_label._label;
+                tag._bbox = elt_from_label._bbox;
 
-                } else {
-                    tag._color = tag_elt._color;
-                    tag._label = tag_elt._label;
-                    tag._bbox = tag_elt._bbox;
-                }
-
-                display_elements.append( tag );
+            } else {
+                tag._color = tag_elt._color;
+                tag._label = tag_elt._label;
+                tag._bbox = tag_elt._bbox;
             }
+
+            display_elements.append( tag );
         }
     }
 

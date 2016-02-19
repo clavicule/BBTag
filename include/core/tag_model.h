@@ -81,7 +81,7 @@ public:
     // returns one element per label if item belongs to ALL and not a specific label
     // returns an empty list if index does not correspond to a valid index
     QList<TagItem::Elements> get_elements(
-        const QModelIndex& index
+        const QModelIndexList& index_list
     ) const;
 
     // returns the list of tags with their elements

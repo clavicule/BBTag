@@ -80,7 +80,7 @@ int TagViewer::shortest_distance(
     int dx = qMin( abs( rect.left() - p.x() ), abs( rect.right() - p.x() ) );
     int dy = qMin( abs( rect.bottom() - p.y() ), abs( rect.top() - p.y() ) );
 
-    return qMin( dx, dy );
+    return ( dx * dx + dy * dy );
 }
 
 void TagViewer::paintEvent(
@@ -151,17 +151,20 @@ void TagViewer::mousePressEvent(
     if( tagging_ ) {
         tag_start_ = e->pos();
         enforce_boundary_conditions( tag_start_ );
+        tag_end_ = tag_start_;
 
     } else if( untagging_ ) {
         // searches the closest rectangle to the picked point
         // removes it only if point is deemed close enough
         // there won't be tons of label per image, so a brute force search
         // is perfectly acceptable, no need to go into quad-tree
+        float scale_f = scale_factor();
         QRect rect_found;
         QString label_found;
-        int distance_min = 10;
+        int distance_min = 200. / scale_f;
         QPoint p = e->pos();
         enforce_boundary_conditions( p );
+        p /= scale_f;
 
         for( QList<TagDisplayElement>::iterator tag_itr = elts_.begin(); tag_itr != elts_.end(); ++tag_itr ) {
             const TagDisplayElement& tag = *tag_itr;
@@ -208,7 +211,21 @@ void TagViewer::mouseReleaseEvent(
     enforce_boundary_conditions( tag_end_ );
 
     float scale_f = scale_factor();
-    emit( tagged( QRect( tag_start_ / scale_f, tag_end_ / scale_f ) ) );
+
+    // make a valid rectangle
+    QRect tag( tag_start_ / scale_f, tag_end_ / scale_f );
+    int left = tag.left();
+    int top = tag.top();
+    if( left > tag.right() ) {
+        tag.setLeft( tag.right() );
+        tag.setRight( left );
+    }
+    if( top > tag.bottom() ) {
+        tag.setTop( tag.bottom() );
+        tag.setBottom( top );
+    }
+
+    emit( tagged( tag ) );
 
     tag_start_ = QPoint( 0, 0 );
     tag_end_ = QPoint( 0, 0 );

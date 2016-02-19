@@ -242,31 +242,38 @@ TagItem::Elements TagModel::get_element(
 }
 
 QList<TagItem::Elements> TagModel::get_elements(
-        const QModelIndex& index
+        const QModelIndexList& index_list
     ) const
 {
     QList<TagItem::Elements> elts;
 
-    if( !index.isValid() ) {
-        return elts;
-    }
-
-    TagItem* item = dynamic_cast<TagItem*>(model_->itemFromIndex( index ));
-    if( !item ) {
-        return elts;
-    }
-
-    // if item is in ALL, returns all the elements of all
-    // labels it belongs to
-    if( item->QStandardItem::parent() == all_item_ ) {
-        const TagItemList& all_items = image_image_ref_[ item->fullpath() ];
-        for( TagItemList::const_iterator tag_itr = all_items.begin(); tag_itr != all_items.end(); ++tag_itr ) {
-            elts.append( (*tag_itr)->elements() );
+    for( QModelIndexList::const_iterator idx_itr = index_list.begin(); idx_itr != index_list.end(); ++idx_itr ) {
+        const QModelIndex& index = *idx_itr;
+        if( !index.isValid() ) {
+            continue;
         }
 
-    } else {
-        elts.append( item->elements() );
+        TagItem* item = dynamic_cast<TagItem*>(model_->itemFromIndex( index ));
+        if( !item ) {
+            continue;
+        }
 
+        // if item is in ALL, returns all the elements of all
+        // labels it belongs to
+        if( item->QStandardItem::parent() == all_item_ ) {
+            const TagItemList& all_items = image_image_ref_[ item->fullpath() ];
+
+            // clears the list to avoid duplicates
+            elts.clear();
+            for( TagItemList::const_iterator tag_itr = all_items.begin(); tag_itr != all_items.end(); ++tag_itr ) {
+                elts.append( (*tag_itr)->elements() );
+            }
+            // returns the list: it contains all the elements
+            return elts;
+
+        } else {
+            elts.append( item->elements() );
+        }
     }
 
     return elts;
