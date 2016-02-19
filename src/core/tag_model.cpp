@@ -235,6 +235,57 @@ QColor TagModel::get_color(
     return item->color();
 }
 
+void TagModel::set_label(
+        const QModelIndex &index,
+        const QString& name
+    )
+{
+    if( !index.isValid() || name.isEmpty() ) {
+        return;
+    }
+
+    TagItem* item = dynamic_cast<TagItem*>(model_->itemFromIndex( index ));
+    if( !item || item == untagged_item_ || item == all_item_ ) {
+        return;
+    }
+
+    item->set_label( name );
+    for( int r = 0; r < item->rowCount(); ++r ) {
+        TagItem* tag_item = dynamic_cast<TagItem*>(item->child(r));
+        if( !tag_item ) {
+            continue;
+        }
+
+        tag_item->set_label( name );
+    }
+}
+
+void TagModel::set_color(
+        const QModelIndex& index,
+        const QColor& color
+    )
+{
+    if( !index.isValid() || !color.isValid() ) {
+        return;
+    }
+
+    TagItem* item = dynamic_cast<TagItem*>(model_->itemFromIndex( index ));
+    if( !item || item == untagged_item_ || item == all_item_ ) {
+        return;
+    }
+
+    item->set_color( color );
+    for( int r = 0; r < item->rowCount(); ++r ) {
+        TagItem* tag_item = dynamic_cast<TagItem*>(item->child(r));
+        if( !tag_item ) {
+            continue;
+        }
+
+        tag_item->set_color( color );
+    }
+}
+
+
 TagItem* TagModel::get_tag_item(
         const QString& fullpath,
         const QString& label

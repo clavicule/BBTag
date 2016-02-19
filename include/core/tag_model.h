@@ -80,6 +80,22 @@ public:
         const QModelIndex& index
     ) const;
 
+    // sets the label to the given index
+    // and all its children will get
+    // that color too
+    void set_label(
+        const QModelIndex& index,
+        const QString& name
+    );
+
+    // sets the color to the given index
+    // and all its children will get
+    // that color too
+    void set_color(
+        const QModelIndex& index,
+        const QColor& color
+    );
+
     // get the element corresponding to the given image and label
     // there can be at most one element
     TagItem::Elements get_element(

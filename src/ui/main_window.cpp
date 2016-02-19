@@ -373,12 +373,15 @@ void MainWindow::change_selected_label_color()
 
     QColor selected_color = QColorDialog::getColor( tag_model_->get_color( selected_for_context_ ), this );
     if( !selected_color.isValid() ) {
+        selected_for_context_ = QModelIndex();
         return;
     }
 
-    // update model color
-    // update all children items
-    set_viewer_tag_options();
+    tag_model_->set_color( selected_for_context_, selected_color );
+    tag_view_->update( selected_for_context_ );
+    update_tag_selector();
+    update_viewer();
+    selected_for_context_ = QModelIndex();
 }
 
 void MainWindow::change_selected_label_name()
@@ -389,11 +392,15 @@ void MainWindow::change_selected_label_name()
 
     QString selected_name = QInputDialog::getText( this, "Edit label name", "Change label name", QLineEdit::Normal, tag_model_->get_label( selected_for_context_ ) );
     if( selected_name.isEmpty() ) {
+        selected_for_context_ = QModelIndex();
         return;
     }
 
-    // update model label
-    // update all children items
+    tag_model_->set_label( selected_for_context_, selected_name );
+    tag_view_->update( selected_for_context_ );
+    update_tag_selector();
+    update_viewer();
+    selected_for_context_ = QModelIndex();
 }
 
 void MainWindow::open_xml()

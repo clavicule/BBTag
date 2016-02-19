@@ -79,6 +79,16 @@ public:
     // returns the tag color
     inline const QColor& color() const;
 
+    // sets the tag label name
+    inline void set_label(
+        const QString& name
+    );
+
+    // sets the tag color
+    inline void set_color(
+        const QColor& color
+    );
+
     // returns the list of tags
     inline const QList<QRect>& tags() const;
 
@@ -129,6 +139,24 @@ const QString& TagItem::label() const
 const QColor& TagItem::color() const
 {
     return tag_color_;
+}
+
+void TagItem::set_label(
+        const QString& name
+    )
+{
+    if( !name.isEmpty() ) {
+        tag_label_ = name;
+    }
+}
+
+void TagItem::set_color(
+        const QColor& color
+    )
+{
+    if( color.isValid() ) {
+        tag_color_ = color;
+    }
 }
 
 const QList<QRect>& TagItem::tags() const
