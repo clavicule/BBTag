@@ -203,6 +203,38 @@ QString TagModel::get_fullpath(
     return item->fullpath();
 }
 
+QString TagModel::get_label(
+        const QModelIndex& index
+    ) const
+{
+    if( !index.isValid() ) {
+        return QString::null;
+    }
+
+    TagItem* item = dynamic_cast<TagItem*>(model_->itemFromIndex( index ));
+    if( !item ) {
+        return QString::null;
+    }
+
+    return item->label();
+}
+
+QColor TagModel::get_color(
+        const QModelIndex& index
+    ) const
+{
+    if( !index.isValid() ) {
+        return QColor();
+    }
+
+    TagItem* item = dynamic_cast<TagItem*>(model_->itemFromIndex( index ));
+    if( !item ) {
+        return QColor();
+    }
+
+    return item->color();
+}
+
 TagItem* TagModel::get_tag_item(
         const QString& fullpath,
         const QString& label

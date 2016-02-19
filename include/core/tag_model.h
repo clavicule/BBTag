@@ -70,6 +70,16 @@ public:
         const QModelIndex& index
     ) const;
 
+    // returns the label corresponding to the given index
+    QString get_label(
+        const QModelIndex& index
+    ) const;
+
+    // returns the color corresponding to the given index
+    QColor get_color(
+        const QModelIndex& index
+    ) const;
+
     // get the element corresponding to the given image and label
     // there can be at most one element
     TagItem::Elements get_element(

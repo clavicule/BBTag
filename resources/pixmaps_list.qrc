@@ -8,5 +8,11 @@
         <file>pixmaps/zoom_in.png</file>
         <file>pixmaps/zoom_out.png</file>
         <file>pixmaps/untag.png</file>
+        <file>pixmaps/credits.png</file>
+        <file>pixmaps/help.png</file>
+        <file>pixmaps/open.png</file>
+        <file>pixmaps/save.png</file>
+        <file>pixmaps/change_color.png</file>
+        <file>pixmaps/change_label.png</file>
     </qresource>
 </RCC>

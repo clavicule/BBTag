@@ -17,6 +17,8 @@
 #include <QGuiApplication>
 #include <QScreen>
 #include <QLabel>
+#include <QMenuBar>
+#include <QColorDialog>
 
 
 MainWindow::MainWindow(
@@ -94,6 +96,7 @@ MainWindow::MainWindow(
     tag_view_->setEditTriggers( QAbstractItemView::NoEditTriggers );
     tag_view_->setSelectionMode( QAbstractItemView::ExtendedSelection );
     tag_model_->attach( tag_view_ );
+    tag_view_->setContextMenuPolicy( Qt::CustomContextMenu );
 
     QVBoxLayout* tag_tree_layout = new QVBoxLayout();
     tag_tree_layout->addLayout( tag_tree_button_layout );
@@ -188,6 +191,35 @@ MainWindow::MainWindow(
     splitter->setSizes( sizes );
 
     setCentralWidget( splitter );
+
+    // menubar
+    QMenu* file_menu = menuBar()->addMenu( tr("&File" ) );
+    QMenu* help_menu = menuBar()->addMenu( tr( "&Help" ) );
+
+    QAction* open_action = new QAction( QIcon( ":/pixmaps/open.png" ), tr( "&Open XML" ), this );
+    QAction* save_action = new QAction( QIcon( ":/pixmaps/save.png" ), tr( "&Save XML" ), this );
+    QAction* help_action = new QAction( QIcon( ":/pixmaps/help.png" ), tr( "&Help" ), this );
+    QAction* credits_action = new QAction( QIcon( ":/pixmaps/credits.png" ), tr( "Credits" ), this );
+
+    open_action->setShortcuts( QKeySequence::Open );
+    save_action->setShortcuts( QKeySequence::Save );
+    help_action->setShortcuts( QKeySequence::HelpContents );
+
+    file_menu->addAction( open_action );
+    file_menu->addAction( save_action );
+
+    help_menu->addAction( help_action );
+    help_menu->addAction( credits_action );
+
+    // context menu
+    QAction* change_color_action = new QAction( QIcon( ":/pixmaps/change_color.png" ), "Change color", this );
+    QAction* change_name_action = new QAction( QIcon( ":/pixmaps/change_label.png" ), "Change name", this );
+
+    context_menu_ = new QMenu( "Edit", this );
+    context_menu_->addAction( change_color_action );
+    context_menu_->addAction( change_name_action );
+
+
     resize( QGuiApplication::primaryScreen()->availableSize() * 0.8 );
 
     // setup connections
@@ -195,6 +227,7 @@ MainWindow::MainWindow(
     connect( add_button, SIGNAL( clicked() ), this, SLOT( add_label() ) );
     connect( remove_button, SIGNAL( clicked() ), this, SLOT( remove_images() ) );
 
+    connect( tag_view_, SIGNAL( customContextMenuRequested(QPoint) ), this, SLOT( show_context_menu(QPoint) ) );
     connect( tag_view_->selectionModel(), SIGNAL( selectionChanged(QItemSelection,QItemSelection) ), this, SLOT( update_viewer() ) );
     connect( label_selector_, SIGNAL( currentIndexChanged(int) ), this, SLOT( set_viewer_tag_options() ) );
     connect( tag_button_, SIGNAL( toggled(bool) ), tag_viewer_, SLOT( set_tagging_status(bool) ) );
@@ -205,6 +238,13 @@ MainWindow::MainWindow(
     connect( zoom_in_button, SIGNAL( clicked() ), tag_scroll_view_, SLOT( zoom_in() ) );
     connect( zoom_out_button, SIGNAL( clicked() ), tag_scroll_view_, SLOT( zoom_out() ) );
     connect( fit_to_view_button, SIGNAL( clicked() ), tag_scroll_view_, SLOT( fit_to_view() ) );
+
+    connect( open_action, SIGNAL( triggered() ), this, SLOT( open_xml() ) );
+    connect( save_action, SIGNAL( triggered() ), this, SLOT( save_xml() ) );
+    connect( help_action, SIGNAL( triggered() ), this, SLOT( show_help() ) );
+    connect( credits_action, SIGNAL( triggered() ), this, SLOT( show_credits() ) );
+    connect( change_color_action, SIGNAL( triggered() ), this, SLOT( change_selected_label_color() ) );
+    connect( change_name_action, SIGNAL( triggered() ), this, SLOT( change_selected_label_name() ) );
 
     update_tag_selector();
 }
@@ -307,6 +347,73 @@ QString MainWindow::get_image_from_index_list(
     }
 
     return reference_fullpath;
+}
+
+void MainWindow::show_context_menu( const QPoint& pos )
+{
+    // ensure a label is selected
+    selected_for_context_ = QModelIndex();
+    QModelIndex index = tag_view_->indexAt( pos );
+
+    if( index.isValid() &&
+        index.parent() == tag_view_->rootIndex() &&
+        tag_model_->get_label( index ) != TagModel::UNTAGGED &&
+        tag_model_->get_label( index ) != TagModel::ALL
+    ) {
+        selected_for_context_ = index;
+        context_menu_->exec( tag_view_->mapToGlobal( pos ) );
+    }
+}
+
+void MainWindow::change_selected_label_color()
+{
+    if( !selected_for_context_.isValid() ) {
+        return;
+    }
+
+    QColor selected_color = QColorDialog::getColor( tag_model_->get_color( selected_for_context_ ), this );
+    if( !selected_color.isValid() ) {
+        return;
+    }
+
+    // update model color
+    // update all children items
+    set_viewer_tag_options();
+}
+
+void MainWindow::change_selected_label_name()
+{
+    if( !selected_for_context_.isValid() ) {
+        return;
+    }
+
+    QString selected_name = QInputDialog::getText( this, "Edit label name", "Change label name", QLineEdit::Normal, tag_model_->get_label( selected_for_context_ ) );
+    if( selected_name.isEmpty() ) {
+        return;
+    }
+
+    // update model label
+    // update all children items
+}
+
+void MainWindow::open_xml()
+{
+
+}
+
+void MainWindow::save_xml()
+{
+
+}
+
+void MainWindow::show_help()
+{
+
+}
+
+void MainWindow::show_credits()
+{
+
 }
 
 void MainWindow::update_viewer()

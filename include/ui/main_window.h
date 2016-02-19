@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 #include <QItemSelection>
+#include <QMenu>
+#include <QModelIndex>
 
 class QTreeView;
 class QFileSystemModel;
@@ -33,6 +35,32 @@ public slots:
     // remove selected image items from
     // the tag tree
     void remove_images();
+
+    // show the contextual menu only for label
+    // ability to change label color and name
+    void show_context_menu(
+        const QPoint& pos
+    );
+
+    // pop-up color selector for the label that
+    // was right-clicked
+    void change_selected_label_color();
+
+    // pop-up line edit for the label that
+    // was right-clicked
+    void change_selected_label_name();
+
+    // open a XML file containing the image tags
+    void open_xml();
+
+    // save tags as XML file
+    void save_xml();
+
+    // show the help contents
+    void show_help();
+
+    // show the credits
+    void show_credits();
 
 protected slots:
     // internal slot for updating the viewer
@@ -79,6 +107,9 @@ private:
 
     TagModel* tag_model_;
     QTreeView* tag_view_;
+
+    QMenu* context_menu_;
+    QModelIndex selected_for_context_;
 
     QComboBox* label_selector_;
     TagViewer* tag_viewer_;
