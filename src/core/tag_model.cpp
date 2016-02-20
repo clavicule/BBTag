@@ -362,6 +362,26 @@ QList<TagItem::Elements> TagModel::get_elements(
     return elts;
 }
 
+QHash< QString, QList<TagItem::Elements> > TagModel::get_all_elements() const
+{
+    QHash< QString, QList<TagItem::Elements> > elts;
+
+    for( QHash<QString, TagItemList>::const_iterator elt_itr = image_image_ref_.begin(); elt_itr != image_image_ref_.end(); ++elt_itr ) {
+        const QString& fullpath = elt_itr.key();
+        const TagItemList& tags = elt_itr.value();
+
+        for( TagItemList::const_iterator tag_itr = tags.begin(); tag_itr != tags.end(); ++tag_itr ) {
+            TagItem* item = *tag_itr;
+            if( item->QStandardItem::parent() == all_item_ || item->QStandardItem::parent() == untagged_item_ ) {
+                continue;
+            }
+            elts[ fullpath ].append( item->elements() );
+        }
+    }
+
+    return elts;
+}
+
 QList<TagItem::Elements> TagModel::get_all_tags() const
 {
     QList<TagItem::Elements> tags;

@@ -2,6 +2,7 @@
 #include <ui/tag_viewer.h>
 #include <ui/tag_scroll_view.h>
 #include <core/tag_model.h>
+#include <core/tag_io.h>
 
 #include <QLayout>
 #include <QWidget>
@@ -19,6 +20,8 @@
 #include <QLabel>
 #include <QMenuBar>
 #include <QColorDialog>
+#include <QFileDialog>
+#include <QMessageBox>
 
 
 MainWindow::MainWindow(
@@ -405,12 +408,23 @@ void MainWindow::change_selected_label_name()
 
 void MainWindow::open_xml()
 {
-
 }
 
 void MainWindow::save_xml()
 {
+    QString filename = QFileDialog::getSaveFileName( this, "Save to XML file", QDir::currentPath(), "XML Files (*.xml)" );
+    if( filename.isEmpty() ) {
+        return;
+    }
 
+    QFile file( filename );
+    if( !file.open( QFile::WriteOnly | QFile::Text ) ) {
+        QMessageBox::critical( this, "Error", "Failed to write file " + file.errorString() );
+        return;
+    }
+
+    TagIO::write( &file, tag_model_->get_all_elements() );
+    file.close();
 }
 
 void MainWindow::show_help()

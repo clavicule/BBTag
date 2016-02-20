@@ -110,6 +110,9 @@ public:
         const QModelIndexList& index_list
     ) const;
 
+    // returns all the data as unique table of image file associated to tag item
+    QHash< QString, QList<TagItem::Elements> > get_all_elements() const;
+
     // returns the list of tags with their elements
     // excluding UNTAGGED and ALL
     QList<TagItem::Elements> get_all_tags() const;
