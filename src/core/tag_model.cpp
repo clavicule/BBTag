@@ -10,10 +10,23 @@ TagModel::TagModel(
         QObject *parent
     )
 {
+    model_ = new QStandardItemModel( parent );
+    init();
+}
+
+TagModel::~TagModel()
+{
+}
+
+void TagModel::init()
+{
+    model_->clear();
+    image_image_ref_.clear();
+    image_label_ref_.clear();
+
     QStandardItem* header = new QStandardItem( "Tag Labels" );
     header->setTextAlignment( Qt::AlignCenter );
 
-    model_ = new QStandardItemModel( parent );
     model_->setHorizontalHeaderItem( 0, header );
 
     QStandardItem* root = model_->invisibleRootItem();
@@ -26,10 +39,6 @@ TagModel::TagModel(
 
     root->appendRow( untagged_item_ );
     root->appendRow( all_item_ );
-}
-
-TagModel::~TagModel()
-{
 }
 
 void TagModel::import_images(
@@ -49,6 +58,10 @@ bool TagModel::add_new_label(
         const QString& label
     )
 {
+    if( label.isEmpty() ) {
+        return false;
+    }
+
     // check if label is already taken
     if( model_->findItems( label, Qt::MatchCaseSensitive, 0 ).count() > 0 ) {
         return false;
@@ -285,7 +298,6 @@ void TagModel::set_color(
     }
 }
 
-
 TagItem* TagModel::get_tag_item(
         const QString& fullpath,
         const QString& label
@@ -380,6 +392,40 @@ QHash< QString, QList<TagItem::Elements> > TagModel::get_all_elements() const
     }
 
     return elts;
+}
+
+void TagModel::init_from_elements(
+        const QHash< QString, QList<TagItem::Elements> >& elts
+    )
+{
+    init();
+    for( QHash< QString, QList<TagItem::Elements> >::const_iterator elt_itr = elts.begin(); elt_itr != elts.end(); ++elt_itr ) {
+        const QString& fullpath = elt_itr.key();
+        const QList<TagItem::Elements>& tags = elt_itr.value();
+
+        QFileInfoList fi;
+        fi.append( QFileInfo( fullpath ) );
+        import_images( fi );
+
+        for( QList<TagItem::Elements>::const_iterator tag_itr = tags.begin(); tag_itr != tags.end(); ++tag_itr ) {
+            const TagItem::Elements& elt = *tag_itr;
+            const QList<QRect>& bbox = elt._bbox;
+
+            QColor color = elt._color;
+            if( !color.isValid() ) {
+                int r = qrand() % 255;
+                int g = qrand() % 255;
+                int b = qrand() % 255;
+
+                color = QColor::fromRgb( r, g, b );
+            }
+            add_new_label( color, elt._label );
+
+            for( QList<QRect>::const_iterator bbox_itr = bbox.begin(); bbox_itr != bbox.end(); ++bbox_itr ) {
+                add_tag_to_label( fullpath, elt._label, *bbox_itr );
+            }
+        }
+    }
 }
 
 QList<TagItem::Elements> TagModel::get_all_tags() const

@@ -410,6 +410,26 @@ void MainWindow::change_selected_label_name()
 
 void MainWindow::open_xml()
 {
+    QString filename = QFileDialog::getOpenFileName( this, "Open XML file", QDir::currentPath(), "XML Files (*.xml)" );
+    if( filename.isEmpty() ) {
+        return;
+    }
+
+    QFile file( filename );
+    if( !file.open( QFile::ReadOnly | QFile::Text ) ) {
+        QMessageBox::critical( this, "Error", "Failed to read file " + file.errorString() );
+        return;
+    }
+
+    QHash< QString, QList<TagItem::Elements> > elts;
+    if( !TagIO::read( &file, elts ) ) {
+        QMessageBox::critical( this, "Error", "Failed to recognize file format/elements" );
+
+    } else {
+        tag_model_->init_from_elements( elts );
+    }
+
+    file.close();
 }
 
 void MainWindow::save_xml()

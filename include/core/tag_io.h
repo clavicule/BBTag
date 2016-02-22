@@ -20,7 +20,7 @@ public:
         const QHash< QString, QList<TagItem::Elements> >& elts
     );
 
-    static void read(
+    static bool read(
         QIODevice* in,
         QHash< QString, QList<TagItem::Elements> >& elts
     );

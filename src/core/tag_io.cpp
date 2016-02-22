@@ -61,41 +61,38 @@ void TagIO::write(
     xml.writeEndDocument();
 }
 
-void TagIO::read(
+bool TagIO::read(
         QIODevice* in,
         QHash< QString, QList<TagItem::Elements> >& elts
     )
 {
     if( !in ) {
-        return;
+        return false;
     }
 
     QXmlStreamReader xml;
     xml.setDevice( in );
 
-    if( !xml.readNextStartElement() ) {
-        return;
-    }
-
-    if( !xml.isStartDocument() ) {
-        return;
+    if( xml.readNext() == QXmlStreamReader::StartDocument && !xml.isStartDocument() ) {
+        return false;
     }
 
     if( !xml.readNextStartElement() ) {
-        return;
+        return false;
     }
 
     if( xml.name() != DATASET ) {
-        return;
+        return false;
     }
 
     // skip info for user
     while( xml.readNextStartElement() && xml.name() != "images" ) {
         xml.skipCurrentElement();
     }
+    xml.readNextStartElement();
 
     // within the "images" element
-    while( xml.readNextStartElement() ) {
+    while( !xml.atEnd() ) {
         if( xml.name() == "image" ) {
             QString fullpath = xml.attributes().value( "path" ).toString();
             if( fullpath.isEmpty() ) {
@@ -115,7 +112,13 @@ void TagIO::read(
                 QStringRef width = att.value( "width" );
                 QStringRef height = att.value( "height" );
 
-                if( top.isEmpty() || left.isEmpty() || width.isEmpty() || height.isEmpty() ) {
+                bool skip = ( top.isEmpty() || left.isEmpty() || width.isEmpty() || height.isEmpty() );
+                xml.readNextStartElement();
+                skip = skip || ( xml.name() != "label" );
+                QString label = xml.readElementText();
+                skip = skip || ( label.isEmpty() );
+
+                if( skip ) {
                     xml.skipCurrentElement();
                     xml.readNextStartElement();
                     continue;
@@ -123,9 +126,17 @@ void TagIO::read(
 
                 TagItem::Elements elt;
                 elt._fullpath = fullpath;
-                elt._bbox.append( QRect( top.toInt(), left.toInt(), width.toInt(), height.toInt() ) );
+                elt._label = label;
+                elt._bbox.append( QRect( left.toInt(), top.toInt(), width.toInt(), height.toInt() ) );
                 elts[ fullpath ].append( elt );
+
+                xml.readNextStartElement();
+                while( xml.isEndElement() ) {
+                    xml.readNextStartElement();
+                }
             }
         }
     }
+
+    return true;
 }

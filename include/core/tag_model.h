@@ -113,6 +113,11 @@ public:
     // returns all the data as unique table of image file associated to tag item
     QHash< QString, QList<TagItem::Elements> > get_all_elements() const;
 
+    // clears the current model and reinitializes it from the given elements
+    void init_from_elements(
+        const QHash< QString, QList<TagItem::Elements> >& elts
+    );
+
     // returns the list of tags with their elements
     // excluding UNTAGGED and ALL
     QList<TagItem::Elements> get_all_tags() const;
@@ -145,6 +150,10 @@ protected:
         const QString& fullpath,
         const QString& label
     );
+
+    // clears the model (removes all item)
+    // and reinitializes it (ALL, UNTAGGED, etc.)
+    void init();
 
 private:
     QStandardItemModel* model_;
