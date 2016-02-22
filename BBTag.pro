@@ -30,5 +30,9 @@ HEADERS  += \
     include/ui/tag_scroll_view.h \
     include/core/tag_io.h
 
-RESOURCES += \
-    resources/pixmaps_list.qrc
+RESOURCES += resources/pixmaps_list.qrc
+
+ICON = resources/icon/bbtag.icns
+
+RC_FILE = resources/icon/bbtag.rc
+

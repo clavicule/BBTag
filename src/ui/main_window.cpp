@@ -28,6 +28,8 @@ MainWindow::MainWindow(
         QWidget *parent
     ) : QMainWindow( parent )
 {
+    setWindowIcon( QIcon( ":/icon/bbtag.png" ) );
+
     // splitter is the central widget of the main window
     // it is made of 3 widgets:
     // - directory parser

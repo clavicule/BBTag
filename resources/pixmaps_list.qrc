@@ -14,5 +14,7 @@
         <file>pixmaps/save.png</file>
         <file>pixmaps/change_color.png</file>
         <file>pixmaps/change_label.png</file>
+        <file>icon/bbtag.png</file>
+        <file>icon/bbtag.ico</file>
     </qresource>
 </RCC>
