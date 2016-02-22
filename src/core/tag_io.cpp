@@ -5,6 +5,11 @@
 #include <QTextCodec>
 
 
+const QString TagIO::DATASET = "dataset";
+const QString TagIO::NAME = "name";
+const QString TagIO::COMMENT = "comment";
+
+
 void TagIO::write(
         QIODevice* out,
         const QHash< QString, QList<TagItem::Elements> >& elts
@@ -19,9 +24,9 @@ void TagIO::write(
     xml.setDevice( out );
 
     xml.writeStartDocument();
-    xml.writeStartElement( "dataset" );
-    xml.writeTextElement( "name", "dataset containing bounding box labels on images" );
-    xml.writeTextElement( "comment", "created by BBTag" );
+    xml.writeStartElement( DATASET );
+    xml.writeTextElement( NAME, "dataset containing bounding box labels on images" );
+    xml.writeTextElement( COMMENT, "created by BBTag" );
     xml.writeStartElement( "images" );
 
     for( QHash< QString, QList<TagItem::Elements> >::const_iterator img_itr = elts.begin(); img_itr != elts.end(); ++img_itr ) {
@@ -57,7 +62,70 @@ void TagIO::write(
 }
 
 void TagIO::read(
-        QIODevice* in
+        QIODevice* in,
+        QHash< QString, QList<TagItem::Elements> >& elts
     )
 {
+    if( !in ) {
+        return;
+    }
+
+    QXmlStreamReader xml;
+    xml.setDevice( in );
+
+    if( !xml.readNextStartElement() ) {
+        return;
+    }
+
+    if( !xml.isStartDocument() ) {
+        return;
+    }
+
+    if( !xml.readNextStartElement() ) {
+        return;
+    }
+
+    if( xml.name() != DATASET ) {
+        return;
+    }
+
+    // skip info for user
+    while( xml.readNextStartElement() && xml.name() != "images" ) {
+        xml.skipCurrentElement();
+    }
+
+    // within the "images" element
+    while( xml.readNextStartElement() ) {
+        if( xml.name() == "image" ) {
+            QString fullpath = xml.attributes().value( "path" ).toString();
+            if( fullpath.isEmpty() ) {
+                xml.skipCurrentElement();
+                continue;
+            }
+
+            if( !xml.readNextStartElement() ) {
+                xml.skipCurrentElement();
+                continue;
+            }
+
+            while( xml.name() == "box" ) {
+                QXmlStreamAttributes att =  xml.attributes();
+                QStringRef top = att.value( "top" );
+                QStringRef left = att.value( "left" );
+                QStringRef width = att.value( "width" );
+                QStringRef height = att.value( "height" );
+
+                if( top.isEmpty() || left.isEmpty() || width.isEmpty() || height.isEmpty() ) {
+                    xml.skipCurrentElement();
+                    xml.readNextStartElement();
+                    continue;
+                }
+
+                TagItem::Elements elt;
+                elt._fullpath = fullpath;
+                elt._bbox.append( QRect( top.toInt(), left.toInt(), width.toInt(), height.toInt() ) );
+                elts[ fullpath ].append( elt );
+            }
+        }
+    }
 }

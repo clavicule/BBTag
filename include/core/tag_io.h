@@ -10,13 +10,19 @@
 class TagIO
 {
 public:
+    static const QString DATASET;
+    static const QString NAME;
+    static const QString COMMENT;
+
+public:
     static void write(
         QIODevice* out,
         const QHash< QString, QList<TagItem::Elements> >& elts
     );
 
     static void read(
-        QIODevice* in
+        QIODevice* in,
+        QHash< QString, QList<TagItem::Elements> >& elts
     );
 
 };
