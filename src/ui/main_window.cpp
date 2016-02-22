@@ -427,6 +427,8 @@ void MainWindow::open_xml()
 
     } else {
         tag_model_->init_from_elements( elts );
+        update_tag_selector();
+        update_viewer();
     }
 
     file.close();
