@@ -447,7 +447,7 @@ void MainWindow::save_xml()
         return;
     }
 
-    TagIO::write( &file, tag_model_->get_all_elements() );
+    TagIO::write( &file, tag_model_->get_all_tags(), tag_model_->get_all_elements() );
     file.close();
 }
 
@@ -520,13 +520,12 @@ void MainWindow::update_viewer()
 void MainWindow::update_tag_selector()
 {
     label_selector_->clear();
-    QList<TagItem::Elements> tags = tag_model_->get_all_tags();
+    QHash<QString, QColor> tags = tag_model_->get_all_tags();
 
-    for( QList<TagItem::Elements>::iterator tag_itr = tags.begin(); tag_itr != tags.end(); ++tag_itr ) {
+    for( QHash<QString, QColor>::iterator tag_itr = tags.begin(); tag_itr != tags.end(); ++tag_itr ) {
         int idx = label_selector_->count();
-        const TagItem::Elements& tag = *tag_itr;
-        label_selector_->insertItem( idx, tag._label );
-        label_selector_->setItemData( idx, QVariant( tag._color ), Qt::DecorationRole );
+        label_selector_->insertItem( idx, tag_itr.key() );
+        label_selector_->setItemData( idx, QVariant( tag_itr.value() ), Qt::DecorationRole );
     }
 
     set_viewer_tag_options();

@@ -432,16 +432,16 @@ void TagModel::init_from_elements(
     }
 }
 
-QList<TagItem::Elements> TagModel::get_all_tags() const
+QHash<QString, QColor> TagModel::get_all_tags() const
 {
-    QList<TagItem::Elements> tags;
+    QHash<QString, QColor> tags;
     for( int r = 0; r < model_->rowCount(); ++r ) {
         TagItem* item = dynamic_cast<TagItem*>(model_->item( r ));
         if( !item || item == untagged_item_ || item == all_item_ ) {
             continue;
         }
 
-        tags.append( item->elements() );
+        tags[ item->label() ] = item->color();
     }
 
     return tags;

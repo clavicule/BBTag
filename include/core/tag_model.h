@@ -120,7 +120,7 @@ public:
 
     // returns the list of tags with their elements
     // excluding UNTAGGED and ALL
-    QList<TagItem::Elements> get_all_tags() const;
+    QHash<QString, QColor> get_all_tags() const;
 
     // adds a label tag with the given bounding box to the given image
     QModelIndex add_tag_to_label(
