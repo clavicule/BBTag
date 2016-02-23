@@ -200,6 +200,7 @@ MainWindow::MainWindow(
     QMenu* help_menu = menuBar()->addMenu( tr( "&Help" ) );
 
     QAction* open_action = new QAction( QIcon( ":/pixmaps/open.png" ), tr( "&Open XML" ), this );
+    QAction* open_and_merge_action = new QAction( QIcon( ":/pixmaps/open.png" ), tr( "Open XML and Merge" ), this );
     QAction* save_action = new QAction( QIcon( ":/pixmaps/save.png" ), tr( "&Save As XML" ), this );
     QAction* save_selection_action = new QAction( QIcon( ":/pixmaps/save.png" ), tr( "Save Selection As XML" ), this );
 
@@ -207,11 +208,13 @@ MainWindow::MainWindow(
     QAction* credits_action = new QAction( QIcon( ":/pixmaps/credits.png" ), tr( "Credits" ), this );
 
     open_action->setShortcuts( QKeySequence::Open );
+    open_and_merge_action->setShortcut( QKeySequence( Qt::CTRL + Qt::SHIFT + Qt::Key_O ) );
     save_action->setShortcuts( QKeySequence::Save );
     save_selection_action->setShortcuts( QKeySequence::SaveAs );
     help_action->setShortcuts( QKeySequence::HelpContents );
 
     file_menu->addAction( open_action );
+    file_menu->addAction( open_and_merge_action );
     file_menu->addAction( save_action );
     file_menu->addAction( save_selection_action );
 
@@ -247,6 +250,7 @@ MainWindow::MainWindow(
     connect( fit_to_view_button, SIGNAL( clicked() ), tag_scroll_view_, SLOT( fit_to_view() ) );
 
     connect( open_action, SIGNAL( triggered() ), this, SLOT( open_xml() ) );
+    connect( open_and_merge_action, SIGNAL( triggered() ), this, SLOT( open_xml_and_merge() ) );
     connect( save_action, SIGNAL( triggered() ), this, SLOT( save_as_xml() ) );
     connect( save_selection_action, SIGNAL( triggered() ), this, SLOT( save_selection_as_xml() ) );
     connect( help_action, SIGNAL( triggered() ), this, SLOT( show_help() ) );
@@ -411,6 +415,16 @@ void MainWindow::change_selected_label_name()
     selected_for_context_ = QModelIndex();
 }
 
+void MainWindow::open_xml_and_merge()
+{
+    QString filename = QFileDialog::getOpenFileName( this, "Open XML file", QDir::currentPath(), "XML Files (*.xml)" );
+    if( filename.isEmpty() ) {
+        return;
+    }
+
+    load_xml( filename, true );
+}
+
 void MainWindow::open_xml()
 {
     QString filename = QFileDialog::getOpenFileName( this, "Open XML file", QDir::currentPath(), "XML Files (*.xml)" );
@@ -418,23 +432,7 @@ void MainWindow::open_xml()
         return;
     }
 
-    QFile file( filename );
-    if( !file.open( QFile::ReadOnly | QFile::Text ) ) {
-        QMessageBox::critical( this, "Error", "Failed to read file " + file.errorString() );
-        return;
-    }
-
-    QHash< QString, QList<TagItem::Elements> > elts;
-    if( !TagIO::read( &file, elts ) ) {
-        QMessageBox::critical( this, "Error", "Failed to recognize file format/elements" );
-
-    } else {
-        tag_model_->init_from_elements( elts );
-        update_tag_selector();
-        update_viewer();
-    }
-
-    file.close();
+    load_xml( filename, false );
 }
 
 void MainWindow::save_as_xml()
@@ -444,14 +442,7 @@ void MainWindow::save_as_xml()
         return;
     }
 
-    QFile file( filename );
-    if( !file.open( QFile::WriteOnly | QFile::Text ) ) {
-        QMessageBox::critical( this, "Error", "Failed to write file " + file.errorString() );
-        return;
-    }
-
-    TagIO::write( &file, tag_model_->get_all_tags(), tag_model_->get_all_elements( QModelIndexList() ) );
-    file.close();
+    save_xml( filename, QModelIndexList() );
 }
 
 void MainWindow::save_selection_as_xml()
@@ -468,6 +459,37 @@ void MainWindow::save_selection_as_xml()
         return;
     }
 
+    save_xml( filename, selection );
+}
+void MainWindow::load_xml(
+        const QString& filename,
+        bool merge
+    )
+{
+    QFile file( filename );
+    if( !file.open( QFile::ReadOnly | QFile::Text ) ) {
+        QMessageBox::critical( this, "Error", "Failed to read file " + file.errorString() );
+        return;
+    }
+
+    QHash< QString, QList<TagItem::Elements> > elts;
+    if( !TagIO::read( &file, elts ) ) {
+        QMessageBox::critical( this, "Error", "Failed to recognize file format/elements" );
+
+    } else {
+        tag_model_->init_from_elements( elts, merge );
+        update_tag_selector();
+        update_viewer();
+    }
+
+    file.close();
+}
+
+void MainWindow::save_xml(
+        const QString& filename,
+        const QModelIndexList& selection
+    )
+{
     QFile file( filename );
     if( !file.open( QFile::WriteOnly | QFile::Text ) ) {
         QMessageBox::critical( this, "Error", "Failed to write file " + file.errorString() );

@@ -53,6 +53,9 @@ public slots:
     // open a XML file containing the image tags
     void open_xml();
 
+    // open a XML file and merge it to the current tree
+    void open_xml_and_merge();
+
     // save tags as XML file
     void save_as_xml();
 
@@ -97,6 +100,20 @@ protected slots:
     void untag_image(
         const QString& label,
         const QRect& bbox
+    );
+
+    // loads the given XML file
+    // if merge is off, clears the current tree first
+    void load_xml(
+        const QString& filename,
+        bool merge
+    );
+
+    // saves tag as XML file
+    // if no selection is provided, save all items
+    void save_xml(
+        const QString& filename,
+        const QModelIndexList& selection
     );
 
 protected:

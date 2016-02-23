@@ -117,8 +117,10 @@ public:
     ) const;
 
     // clears the current model and reinitializes it from the given elements
+    // if merge is on, the tree is not cleared first
     void init_from_elements(
-        const QHash< QString, QList<TagItem::Elements> >& elts
+        const QHash< QString, QList<TagItem::Elements> >& elts,
+        bool merge
     );
 
     // returns the list of tags with their elements

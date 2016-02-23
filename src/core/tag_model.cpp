@@ -434,10 +434,14 @@ QHash< QString, QList<TagItem::Elements> > TagModel::get_all_elements(
 }
 
 void TagModel::init_from_elements(
-        const QHash< QString, QList<TagItem::Elements> >& elts
+        const QHash< QString, QList<TagItem::Elements> >& elts,
+        bool merge
     )
 {
-    init();
+    if( !merge ) {
+        init();
+    }
+
     for( QHash< QString, QList<TagItem::Elements> >::const_iterator elt_itr = elts.begin(); elt_itr != elts.end(); ++elt_itr ) {
         const QString& fullpath = elt_itr.key();
         const QList<TagItem::Elements>& tags = elt_itr.value();
