@@ -152,11 +152,13 @@ void TagModel::remove_items(
     // otherwise selection indexing becomes invalid
     // --> using STL - qSort and other QtAlgo are obsolete
     // however sorting QModelIndex does not take parenting into account
-    // therefore no need to sort child items
-    // but parents still do
+    // need to sort both parents and children independently
     QModelIndexList list_to_process = parent_index_to_remove.toList();
     std::sort( list_to_process.begin(), list_to_process.end() );
-    list_to_process.append( child_index_to_remove.toList() );
+
+    QModelIndexList sorted_kids = child_index_to_remove.toList();
+    std::sort( sorted_kids.begin(), sorted_kids.end() );
+    list_to_process.append( sorted_kids );
 
     for( int idx_itr = list_to_process.count() - 1; idx_itr >= 0; --idx_itr ) {
         const QModelIndex& idx = list_to_process.at( idx_itr );
