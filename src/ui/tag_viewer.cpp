@@ -76,9 +76,19 @@ int TagViewer::shortest_distance(
         const QPoint& p,
         const QRect& rect
     )
-{
-    int dx = qMin( abs( rect.left() - p.x() ), abs( rect.right() - p.x() ) );
-    int dy = qMin( abs( rect.bottom() - p.y() ), abs( rect.top() - p.y() ) );
+{    
+    int top = rect.top();
+    int left = rect.left();
+    int bottom = rect.y() + rect.height(); // note from Qt doc --> retrieve the true y-coordinate
+    int right = rect.x() + rect.width(); // note from Qt doc --> retrieve the true x-coordinate
+
+    int x = p.x();
+    int y = p.y();
+
+    // if x (resp. y ) in between rectangle left & right (resp. top and bottom)
+    // --> count a distance of 0
+    int dx = ( x < right && x > left )? 0 : qMin( abs( left - x ), abs( right - x ) );
+    int dy = ( y < bottom && y > top )? 0 : qMin( abs( bottom - y ), abs( top - y ) );
 
     return ( dx * dx + dy * dy );
 }
