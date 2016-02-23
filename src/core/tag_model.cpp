@@ -378,7 +378,9 @@ QList<TagItem::Elements> TagModel::get_elements(
     return elts;
 }
 
-QHash< QString, QList<TagItem::Elements> > TagModel::get_all_elements() const
+QHash< QString, QList<TagItem::Elements> > TagModel::get_all_elements(
+        const QModelIndexList& selection
+    ) const
 {
     QHash< QString, QList<TagItem::Elements> > elts;
 
@@ -388,9 +390,15 @@ QHash< QString, QList<TagItem::Elements> > TagModel::get_all_elements() const
 
         for( TagItemList::const_iterator tag_itr = tags.begin(); tag_itr != tags.end(); ++tag_itr ) {
             TagItem* item = *tag_itr;
-            if( item->QStandardItem::parent() == all_item_ || item->QStandardItem::parent() == untagged_item_ ) {
+            QStandardItem* parent_item = item->QStandardItem::parent();
+            if( !parent_item || parent_item == all_item_ || parent_item == untagged_item_ ) {
                 continue;
             }
+
+            if( !selection.isEmpty() && !selection.contains( item->index() ) && !selection.contains( parent_item->index() ) ) {
+                continue;
+            }
+
             elts[ fullpath ].append( item->elements() );
         }
     }

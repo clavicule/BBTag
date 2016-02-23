@@ -54,7 +54,10 @@ public slots:
     void open_xml();
 
     // save tags as XML file
-    void save_xml();
+    void save_as_xml();
+
+    // save selected tags as XML file
+    void save_selection_as_xml();
 
     // show the help contents
     void show_help();

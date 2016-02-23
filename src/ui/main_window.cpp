@@ -200,16 +200,20 @@ MainWindow::MainWindow(
     QMenu* help_menu = menuBar()->addMenu( tr( "&Help" ) );
 
     QAction* open_action = new QAction( QIcon( ":/pixmaps/open.png" ), tr( "&Open XML" ), this );
-    QAction* save_action = new QAction( QIcon( ":/pixmaps/save.png" ), tr( "&Save XML" ), this );
+    QAction* save_action = new QAction( QIcon( ":/pixmaps/save.png" ), tr( "&Save As XML" ), this );
+    QAction* save_selection_action = new QAction( QIcon( ":/pixmaps/save.png" ), tr( "Save Selection As XML" ), this );
+
     QAction* help_action = new QAction( QIcon( ":/pixmaps/help.png" ), tr( "&Help" ), this );
     QAction* credits_action = new QAction( QIcon( ":/pixmaps/credits.png" ), tr( "Credits" ), this );
 
     open_action->setShortcuts( QKeySequence::Open );
     save_action->setShortcuts( QKeySequence::Save );
+    save_selection_action->setShortcuts( QKeySequence::SaveAs );
     help_action->setShortcuts( QKeySequence::HelpContents );
 
     file_menu->addAction( open_action );
     file_menu->addAction( save_action );
+    file_menu->addAction( save_selection_action );
 
     help_menu->addAction( help_action );
     help_menu->addAction( credits_action );
@@ -243,7 +247,8 @@ MainWindow::MainWindow(
     connect( fit_to_view_button, SIGNAL( clicked() ), tag_scroll_view_, SLOT( fit_to_view() ) );
 
     connect( open_action, SIGNAL( triggered() ), this, SLOT( open_xml() ) );
-    connect( save_action, SIGNAL( triggered() ), this, SLOT( save_xml() ) );
+    connect( save_action, SIGNAL( triggered() ), this, SLOT( save_as_xml() ) );
+    connect( save_selection_action, SIGNAL( triggered() ), this, SLOT( save_selection_as_xml() ) );
     connect( help_action, SIGNAL( triggered() ), this, SLOT( show_help() ) );
     connect( credits_action, SIGNAL( triggered() ), this, SLOT( show_credits() ) );
     connect( change_color_action, SIGNAL( triggered() ), this, SLOT( change_selected_label_color() ) );
@@ -432,9 +437,9 @@ void MainWindow::open_xml()
     file.close();
 }
 
-void MainWindow::save_xml()
+void MainWindow::save_as_xml()
 {
-    QString filename = QFileDialog::getSaveFileName( this, "Save to XML file", QDir::currentPath(), "XML Files (*.xml)" );
+    QString filename = QFileDialog::getSaveFileName( this, "Save as XML file", QDir::currentPath(), "XML Files (*.xml)" );
     if( filename.isEmpty() ) {
         return;
     }
@@ -445,7 +450,31 @@ void MainWindow::save_xml()
         return;
     }
 
-    TagIO::write( &file, tag_model_->get_all_tags(), tag_model_->get_all_elements() );
+    TagIO::write( &file, tag_model_->get_all_tags(), tag_model_->get_all_elements( QModelIndexList() ) );
+    file.close();
+}
+
+void MainWindow::save_selection_as_xml()
+{
+    QItemSelectionModel* selection_model = tag_view_->selectionModel();
+    if( !selection_model ) {
+        QMessageBox::critical( this, "Error", "No valid selection" );
+        return;
+    }
+    QModelIndexList selection = selection_model->selectedRows();
+
+    QString filename = QFileDialog::getSaveFileName( this, "Save Selection as XML file", QDir::currentPath(), "XML Files (*.xml)" );
+    if( filename.isEmpty() ) {
+        return;
+    }
+
+    QFile file( filename );
+    if( !file.open( QFile::WriteOnly | QFile::Text ) ) {
+        QMessageBox::critical( this, "Error", "Failed to write file " + file.errorString() );
+        return;
+    }
+
+    TagIO::write( &file, tag_model_->get_all_tags(), tag_model_->get_all_elements( selection ) );
     file.close();
 }
 
@@ -469,7 +498,7 @@ void MainWindow::update_viewer()
         return;
     }
 
-    QModelIndexList selection = selection_model? selection_model->selectedRows() : QModelIndexList();
+    QModelIndexList selection = selection_model->selectedRows();
 
     // iterate through the selection:
     // if multiple selection, check that all selected item reference to the same image (fullpath)
@@ -587,7 +616,7 @@ void MainWindow::tag_image(
         return;
     }
 
-    QModelIndexList selection = selection_model? selection_model->selectedRows() : QModelIndexList();
+    QModelIndexList selection = selection_model->selectedRows();
 
     QString fullpath_ref = get_image_from_index_list( selection );
     if( fullpath_ref.isEmpty() ) {
@@ -635,7 +664,7 @@ void MainWindow::untag_image(
         return;
     }
 
-    QModelIndexList selection = selection_model? selection_model->selectedRows() : QModelIndexList();
+    QModelIndexList selection = selection_model->selectedRows();
 
     QString fullpath_ref = get_image_from_index_list( selection );
     if( fullpath_ref.isEmpty() ) {

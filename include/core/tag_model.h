@@ -110,8 +110,11 @@ public:
         const QModelIndexList& index_list
     ) const;
 
-    // returns all the data as unique table of image file associated to tag item
-    QHash< QString, QList<TagItem::Elements> > get_all_elements() const;
+    // if selection is empty, returns all the data as unique table of image file associated to tag item
+    // if selection is not empty, returns only the data that is selected
+    QHash< QString, QList<TagItem::Elements> > get_all_elements(
+        const QModelIndexList& selection
+    ) const;
 
     // clears the current model and reinitializes it from the given elements
     void init_from_elements(
