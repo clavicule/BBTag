@@ -71,6 +71,16 @@ protected slots:
     // based on the current tag selection
     void set_viewer_tag_options();
 
+    // update the viewer with the proper tag status
+    void enable_tag(
+        bool activate
+    );
+
+    // update the viewer with the proper untag status
+    void enable_untag(
+        bool activate
+    );
+
     // tag the current image (if valid selection)
     // with the given bounding box
     void tag_image(
@@ -104,6 +114,7 @@ private:
     QTreeView* dir_view_;
 
     QPushButton* tag_button_;
+    QPushButton* untag_button_;
 
     TagModel* tag_model_;
     QTreeView* tag_view_;

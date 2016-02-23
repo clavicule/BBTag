@@ -119,30 +119,27 @@ MainWindow::MainWindow(
     QWidget* tag_viewer_widget = new QWidget( splitter );
     label_selector_ = new QComboBox( tag_viewer_widget );
 
-    QButtonGroup* tag_tools = new QButtonGroup( this );
-    tag_tools->setExclusive( true );
-
     tag_button_ = new QPushButton( QIcon( ":/pixmaps/tag.png" ), "", tag_viewer_widget );
     tag_button_->setCheckable( true );
     tag_button_->setFixedSize( 32, 32 );
     tag_button_->setIconSize( QSize( 32, 32 ) );
     tag_button_->setShortcut( QKeySequence( Qt::Key_T ) );
     tag_button_->setToolTip( "Use t-key as shortcut" );
-    tag_tools->addButton( tag_button_ );
 
-    QPushButton* untag_button = new QPushButton( QIcon( ":/pixmaps/untag.png" ), "", tag_viewer_widget );
-    untag_button->setCheckable( true );
-    untag_button->setFixedSize( 32, 32 );
-    untag_button->setIconSize( QSize( 32, 32 ) );
-    untag_button->setShortcut( QKeySequence( Qt::Key_D ) );
-    untag_button->setToolTip( "Use d-key as shortcut" );
-    tag_tools->addButton( untag_button );
+    untag_button_ = new QPushButton( QIcon( ":/pixmaps/untag.png" ), "", tag_viewer_widget );
+    untag_button_->setCheckable( true );
+    untag_button_->setFixedSize( 32, 32 );
+    untag_button_->setIconSize( QSize( 32, 32 ) );
+    untag_button_->setShortcut( QKeySequence( Qt::Key_D ) );
+    untag_button_->setToolTip( "Use d-key as shortcut" );
+
 
     QHBoxLayout* tag_buttons_layout = new QHBoxLayout();
     tag_buttons_layout->addWidget( new QLabel( "<b>Tag</b>", tag_viewer_widget ) );
     tag_buttons_layout->addWidget( label_selector_ );
     tag_buttons_layout->addWidget( tag_button_ );
-    tag_buttons_layout->addWidget( untag_button );
+    tag_buttons_layout->addSpacing( 20 );
+    tag_buttons_layout->addWidget( untag_button_ );
     tag_buttons_layout->setStretchFactor( label_selector_, 2 );
 
     tag_scroll_view_ = new TagScrollView( tag_viewer_widget );
@@ -166,6 +163,7 @@ MainWindow::MainWindow(
     fit_to_view_button->setToolTip( "Use f-key as shortcut" );
 
     QVBoxLayout* viewer_buttons_layout = new QVBoxLayout();
+    viewer_buttons_layout->addSpacing( 20 );
     viewer_buttons_layout->addWidget( zoom_in_button );
     viewer_buttons_layout->addWidget( zoom_out_button );
     viewer_buttons_layout->addWidget( fit_to_view_button );
@@ -235,8 +233,8 @@ MainWindow::MainWindow(
     connect( tag_view_, SIGNAL( customContextMenuRequested(QPoint) ), this, SLOT( show_context_menu(QPoint) ) );
     connect( tag_view_->selectionModel(), SIGNAL( selectionChanged(QItemSelection,QItemSelection) ), this, SLOT( update_viewer() ) );
     connect( label_selector_, SIGNAL( currentIndexChanged(int) ), this, SLOT( set_viewer_tag_options() ) );
-    connect( tag_button_, SIGNAL( toggled(bool) ), tag_viewer_, SLOT( set_tagging_status(bool) ) );
-    connect( untag_button, SIGNAL( toggled(bool) ), tag_viewer_, SLOT( set_untagging_status(bool) ) );
+    connect( tag_button_, SIGNAL( toggled(bool) ), this, SLOT( enable_tag(bool) ) );
+    connect( untag_button_, SIGNAL( toggled(bool) ), this, SLOT( enable_untag(bool) ) );
     connect( tag_viewer_, SIGNAL( tagged(QRect) ), this, SLOT( tag_image(QRect) ) );
     connect( tag_viewer_, SIGNAL( untagged(QString,QRect) ), this, SLOT( untag_image(QString, QRect) ) );
 
@@ -549,6 +547,34 @@ void MainWindow::set_viewer_tag_options()
     }
 
     tag_viewer_->set_tag_options( label.toString(), color.value<QColor>() );
+}
+
+// using exclusive button group doesn't allow
+// to have both buttons unchecked
+// hence these 2 slots
+void MainWindow::enable_tag(
+        bool activate
+    )
+{
+    if( activate ) {
+        tag_viewer_->set_untagging_status( false );
+        untag_button_->setChecked( false );
+    }
+    tag_viewer_->set_tagging_status( activate );
+}
+
+// using exclusive button group doesn't allow
+// to have both buttons unchecked
+// hence these 2 slots
+void MainWindow::enable_untag(
+        bool activate
+    )
+{
+    if( activate ) {
+        tag_viewer_->set_tagging_status( false );
+        tag_button_->setChecked( false );
+    }
+    tag_viewer_->set_untagging_status( activate );
 }
 
 void MainWindow::tag_image(
