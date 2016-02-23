@@ -382,7 +382,28 @@ QHash< QString, QList<TagItem::Elements> > TagModel::get_all_elements(
         const QModelIndexList& selection
     ) const
 {
+    // if selection contains <ALL> returns, all items regardless of selection
+    if( selection.contains( all_item_->index() ) ) {
+        return get_all_elements( QModelIndexList() );
+    }
+
     QHash< QString, QList<TagItem::Elements> > elts;
+
+    // special treatment for items under <ALL> selected
+    QSet<QString> bypass_selection;
+    for( QModelIndexList::const_iterator s_itr = selection.begin(); s_itr != selection.end(); ++s_itr ) {
+        TagItem* item = dynamic_cast<TagItem*>(model_->itemFromIndex( *s_itr ));
+        if( !item ) {
+            continue;
+        }
+
+        if( item->QStandardItem::parent() != all_item_ ) {
+            continue;
+        }
+
+        bypass_selection.insert( item->fullpath() );
+    }
+
 
     for( QHash<QString, TagItemList>::const_iterator elt_itr = image_image_ref_.begin(); elt_itr != image_image_ref_.end(); ++elt_itr ) {
         const QString& fullpath = elt_itr.key();
@@ -391,11 +412,17 @@ QHash< QString, QList<TagItem::Elements> > TagModel::get_all_elements(
         for( TagItemList::const_iterator tag_itr = tags.begin(); tag_itr != tags.end(); ++tag_itr ) {
             TagItem* item = *tag_itr;
             QStandardItem* parent_item = item->QStandardItem::parent();
-            if( !parent_item || parent_item == all_item_ || parent_item == untagged_item_ ) {
-                continue;
+
+            if( !parent_item || parent_item == untagged_item_ || parent_item == all_item_ ) {
+                    continue;
             }
 
-            if( !selection.isEmpty() && !selection.contains( item->index() ) && !selection.contains( parent_item->index() ) ) {
+            if( !selection.isEmpty() &&
+                !bypass_selection.contains( fullpath ) &&
+                !selection.contains( item->index() ) &&
+                !selection.contains( parent_item->index() ) &&
+                !selection.contains( all_item_->index() )
+            ) {
                 continue;
             }
 
