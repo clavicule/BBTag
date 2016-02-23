@@ -337,7 +337,7 @@ QString MainWindow::get_image_from_index_list(
         QString current_fullpath = tag_model_->get_fullpath( *idx_itr );
 
         if( current_fullpath.isEmpty() ) {
-            // not an image --> keeo going
+            // not an image --> keep going
             continue;
 
         } else if( reference_fullpath.isEmpty() ) {
