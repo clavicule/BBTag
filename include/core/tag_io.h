@@ -4,6 +4,7 @@
 #include <core/tag_item.h>
 
 #include <QIODevice>
+#include <QDir>
 
 // class for writing/reading XML files
 // containing tag information
@@ -29,7 +30,7 @@ public:
 public:
     // write to XML file the given elements
     // label colors (optional) are provided by tag_color_dict
-    static void write(
+    static void write_xml(
         QIODevice* out,
         const QString& relative_dir,
         const QHash<QString, QColor>& tag_color_dict,
@@ -38,10 +39,15 @@ public:
 
     // read XML file
     // if no label colors were provided, colors are chosen randomly
-    static bool read(
+    static bool read_xml(
         QIODevice* in,
         const QString& relative_dir,
         QHash< QString, QList<TagItem::Elements> >& elts
+    );
+
+    static void write_images(
+        const QDir& output_dir,
+        const QHash< QString, QList<TagItem::Elements> >& elts
     );
 
 };

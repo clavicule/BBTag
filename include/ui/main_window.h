@@ -63,6 +63,12 @@ public slots:
     // save selected tags as XML file
     void save_selection_as_xml();
 
+    // crop images per label and save them individually
+    void save_as_images();
+
+    // crop selected images per selected label and save them individually
+    void save_selection_as_images();
+
     // show the help contents
     void show_help();
 

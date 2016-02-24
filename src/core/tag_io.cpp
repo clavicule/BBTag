@@ -4,6 +4,7 @@
 #include <QXmlStreamReader>
 #include <QTextCodec>
 #include <QDir>
+#include <QProgressDialog>
 
 
 const QString TagIO::DATASET = "dataset";
@@ -23,7 +24,7 @@ const QString TagIO::WIDTH = "width";
 const QString TagIO::HEIGHT = "height";
 
 
-void TagIO::write(
+void TagIO::write_xml(
         QIODevice* out,
         const QString& relative_dir,
         const QHash<QString, QColor>& tag_color_dict,
@@ -57,7 +58,13 @@ void TagIO::write(
 
     xml.writeStartElement( IMAGES );
 
+    QProgressDialog progress( "Saving as XML", QString(), 0, elts.count() );
+    progress.setWindowModality( Qt::WindowModal );
+    int c = 0;
+
     for( QHash< QString, QList<TagItem::Elements> >::const_iterator img_itr = elts.begin(); img_itr != elts.end(); ++img_itr ) {
+        progress.setValue( c++ );
+
         QString fullpath = img_itr.key();
         const QList<TagItem::Elements>& tags = img_itr.value();
 
@@ -88,12 +95,14 @@ void TagIO::write(
         xml.writeEndElement();
     }
 
+    progress.setValue( elts.count() );
+
     xml.writeEndElement();
     xml.writeEndElement();
     xml.writeEndDocument();
 }
 
-bool TagIO::read(
+bool TagIO::read_xml(
         QIODevice* in,
         const QString& relative_dir,
         QHash< QString, QList<TagItem::Elements> >& elts
@@ -193,4 +202,58 @@ bool TagIO::read(
     }
 
     return true;
+}
+
+void TagIO::write_images(
+        const QDir& output_dir,
+        const QHash< QString, QList<TagItem::Elements> >& elts
+    )
+{
+    if( !output_dir.exists() ) {
+        return;
+    }
+
+    QHash<QString, int> label_counter;
+
+    QProgressDialog progress( "Crop and save images", "Cancel", 0, elts.count() );
+    progress.setWindowModality( Qt::WindowModal );
+    int c = 0;
+
+    for( QHash< QString, QList<TagItem::Elements> >::const_iterator img_itr = elts.begin(); img_itr != elts.end(); ++img_itr ) {
+        progress.setValue( c++ );
+
+        QString fullpath = img_itr.key();
+        const QList<TagItem::Elements>& tags = img_itr.value();
+
+        for( QList<TagItem::Elements>::const_iterator tag_itr = tags.begin(); tag_itr != tags.end(); ++tag_itr ) {
+            const TagItem::Elements& elt = *tag_itr;
+            const QList<QRect>& bboxes = elt._bbox;
+            const QString& label = elt._label;
+
+            if( !label_counter.contains( label ) ) {
+                label_counter[ label ] = 0;
+                if( !output_dir.exists( label ) ) {
+                    output_dir.mkdir( label );
+                }
+            }
+            QDir subdir = output_dir.absoluteFilePath( label );
+
+            QString ext = QFileInfo( elt._fullpath ).suffix();
+            QPixmap pix;
+            if( !pix.load( elt._fullpath ) ) {
+                continue;
+            }
+
+            for( QList<QRect>::const_iterator bbox_itr = bboxes.begin(); bbox_itr != bboxes.end(); ++bbox_itr ) {
+                QPixmap cropped = pix.copy( *bbox_itr );
+                cropped.save( subdir.absoluteFilePath( label + "_" + QString::number( ++label_counter[ label ] ) + "." + ext ) );
+            }
+        }
+
+        if( progress.wasCanceled() ) {
+            break;
+        }
+    }
+
+    progress.setValue( elts.count() );
 }

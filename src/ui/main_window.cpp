@@ -199,30 +199,36 @@ MainWindow::MainWindow(
     QMenu* file_menu = menuBar()->addMenu( tr("&File" ) );
     QMenu* help_menu = menuBar()->addMenu( tr( "&Help" ) );
 
-    QAction* open_action = new QAction( tr( "&Open XML" ), this );
-    QAction* open_and_merge_action = new QAction( tr( "Open XML and Merge" ), this );
+    QAction* open_xml_action = new QAction( tr( "&Open XML" ), this );
+    QAction* open_and_merge_xml_action = new QAction( tr( "Open XML and Merge" ), this );
 
-    QAction* save_action = new QAction( tr( "&Save As XML" ), this );
-    QAction* save_selection_action = new QAction( tr( "Save Selection As XML" ), this );
+    QAction* save_xml_action = new QAction( tr( "&Save As XML" ), this );
+    QAction* save_selection_xml_action = new QAction( tr( "Save Selection As XML" ), this );
+
+    QAction* save_images_action = new QAction( tr( "Save As Cropped Images" ), this );
+    QAction* save_selection_images_action = new QAction( tr( "Save Selection As Cropped Images" ), this );
 
     QAction* quit_action = new QAction( tr( "&Quit" ), this );
 
     QAction* help_action = new QAction( QIcon( ":/pixmaps/help.png" ), tr( "&Help" ), this );
     QAction* credits_action = new QAction( QIcon( ":/pixmaps/credits.png" ), tr( "Credits" ), this );
 
-    open_action->setShortcuts( QKeySequence::Open );
-    open_and_merge_action->setShortcut( QKeySequence( Qt::CTRL + Qt::SHIFT + Qt::Key_O ) );
-    save_action->setShortcuts( QKeySequence::Save );
-    save_selection_action->setShortcuts( QKeySequence::SaveAs );
+    open_xml_action->setShortcuts( QKeySequence::Open );
+    open_and_merge_xml_action->setShortcut( QKeySequence( Qt::CTRL + Qt::SHIFT + Qt::Key_O ) );
+    save_xml_action->setShortcuts( QKeySequence::Save );
+    save_selection_xml_action->setShortcuts( QKeySequence::SaveAs );
     quit_action->setShortcuts( QKeySequence::Quit );
     help_action->setShortcuts( QKeySequence::HelpContents );
 
     file_menu->addSection( QIcon( ":/pixmaps/open.png" ), "Open" );
-    file_menu->addAction( open_action );
-    file_menu->addAction( open_and_merge_action );
+    file_menu->addAction( open_xml_action );
+    file_menu->addAction( open_and_merge_xml_action );
     file_menu->addSection( QIcon( ":/pixmaps/save.png" ), "Save" );
-    file_menu->addAction( save_action );
-    file_menu->addAction( save_selection_action );
+    file_menu->addAction( save_xml_action );
+    file_menu->addAction( save_selection_xml_action );
+    file_menu->addSeparator();
+    file_menu->addAction( save_images_action );
+    file_menu->addAction( save_selection_images_action );
     file_menu->addSeparator();
     file_menu->addAction( quit_action );
 
@@ -257,10 +263,12 @@ MainWindow::MainWindow(
     connect( zoom_out_button, SIGNAL( clicked() ), tag_scroll_view_, SLOT( zoom_out() ) );
     connect( fit_to_view_button, SIGNAL( clicked() ), tag_scroll_view_, SLOT( fit_to_view() ) );
 
-    connect( open_action, SIGNAL( triggered() ), this, SLOT( open_xml() ) );
-    connect( open_and_merge_action, SIGNAL( triggered() ), this, SLOT( open_xml_and_merge() ) );
-    connect( save_action, SIGNAL( triggered() ), this, SLOT( save_as_xml() ) );
-    connect( save_selection_action, SIGNAL( triggered() ), this, SLOT( save_selection_as_xml() ) );
+    connect( open_xml_action, SIGNAL( triggered() ), this, SLOT( open_xml() ) );
+    connect( open_and_merge_xml_action, SIGNAL( triggered() ), this, SLOT( open_xml_and_merge() ) );
+    connect( save_xml_action, SIGNAL( triggered() ), this, SLOT( save_as_xml() ) );
+    connect( save_selection_xml_action, SIGNAL( triggered() ), this, SLOT( save_selection_as_xml() ) );
+    connect( save_images_action, SIGNAL( triggered() ), this, SLOT( save_as_images() ) );
+    connect( save_selection_images_action, SIGNAL( triggered() ), this, SLOT( save_selection_as_images() ) );
     connect( quit_action, SIGNAL( triggered() ), this, SLOT( close() ) );
     connect( help_action, SIGNAL( triggered() ), this, SLOT( show_help() ) );
     connect( credits_action, SIGNAL( triggered() ), this, SLOT( show_credits() ) );
@@ -581,7 +589,7 @@ void MainWindow::load_xml(
     }
 
     QHash< QString, QList<TagItem::Elements> > elts;
-    if( !TagIO::read( &file, relative_dir, elts ) ) {
+    if( !TagIO::read_xml( &file, relative_dir, elts ) ) {
         QMessageBox::critical( this, "Error", "Failed to recognize file format/elements" );
 
     } else {
@@ -605,8 +613,35 @@ void MainWindow::save_xml(
         return;
     }
 
-    TagIO::write( &file, relative_dir, tag_model_->get_all_tags(), tag_model_->get_all_elements( selection ) );
+    TagIO::write_xml( &file, relative_dir, tag_model_->get_all_tags(), tag_model_->get_all_elements( selection ) );
     file.close();
+}
+
+void MainWindow::save_as_images()
+{
+    QString dir = QFileDialog::getExistingDirectory( this, "Select directory where to save images", QDir::currentPath() );
+    if( dir.isEmpty() ) {
+        return;
+    }
+
+    TagIO::write_images( QDir( dir ), tag_model_->get_all_elements( QModelIndexList() ) );
+}
+
+void MainWindow::save_selection_as_images()
+{
+    QItemSelectionModel* selection_model = tag_view_->selectionModel();
+    if( !selection_model ) {
+        QMessageBox::critical( this, "Error", "No valid selection" );
+        return;
+    }
+    QModelIndexList selection = selection_model->selectedRows();
+
+    QString dir = QFileDialog::getExistingDirectory( this, "Select directory where to save images", QDir::currentPath() );
+    if( dir.isEmpty() ) {
+        return;
+    }
+
+    TagIO::write_images( QDir( dir ), tag_model_->get_all_elements( selection ) );
 }
 
 void MainWindow::show_help()
