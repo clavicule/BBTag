@@ -5,6 +5,7 @@
 #include <QItemSelection>
 #include <QMenu>
 #include <QModelIndex>
+#include <QFileDialog>
 
 class QTreeView;
 class QFileSystemModel;
@@ -106,6 +107,7 @@ protected slots:
     // if merge is off, clears the current tree first
     void load_xml(
         const QString& filename,
+        const QString& relative_dir,
         bool merge
     );
 
@@ -113,6 +115,7 @@ protected slots:
     // if no selection is provided, save all items
     void save_xml(
         const QString& filename,
+        const QString& relative_dir,
         const QModelIndexList& selection
     );
 
@@ -128,6 +131,14 @@ protected:
     QString get_image_from_index_list(
         const QModelIndexList& index_list
     ) const;
+
+    // build and popup the custom XML file dialog
+    // use mode to choose whether it's a save or open file dialog
+    void pop_up_file_dialog(
+        QString& filename,
+        QString& relative_dir,
+        QFileDialog::AcceptMode mode
+    );
 
 private:
     QFileSystemModel* dir_model_;

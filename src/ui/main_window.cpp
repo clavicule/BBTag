@@ -20,8 +20,8 @@
 #include <QLabel>
 #include <QMenuBar>
 #include <QColorDialog>
-#include <QFileDialog>
 #include <QMessageBox>
+#include <QCheckBox>
 
 
 MainWindow::MainWindow(
@@ -199,10 +199,13 @@ MainWindow::MainWindow(
     QMenu* file_menu = menuBar()->addMenu( tr("&File" ) );
     QMenu* help_menu = menuBar()->addMenu( tr( "&Help" ) );
 
-    QAction* open_action = new QAction( QIcon( ":/pixmaps/open.png" ), tr( "&Open XML" ), this );
-    QAction* open_and_merge_action = new QAction( QIcon( ":/pixmaps/open.png" ), tr( "Open XML and Merge" ), this );
-    QAction* save_action = new QAction( QIcon( ":/pixmaps/save.png" ), tr( "&Save As XML" ), this );
-    QAction* save_selection_action = new QAction( QIcon( ":/pixmaps/save.png" ), tr( "Save Selection As XML" ), this );
+    QAction* open_action = new QAction( tr( "&Open XML" ), this );
+    QAction* open_and_merge_action = new QAction( tr( "Open XML and Merge" ), this );
+
+    QAction* save_action = new QAction( tr( "&Save As XML" ), this );
+    QAction* save_selection_action = new QAction( tr( "Save Selection As XML" ), this );
+
+    QAction* quit_action = new QAction( tr( "&Quit" ), this );
 
     QAction* help_action = new QAction( QIcon( ":/pixmaps/help.png" ), tr( "&Help" ), this );
     QAction* credits_action = new QAction( QIcon( ":/pixmaps/credits.png" ), tr( "Credits" ), this );
@@ -211,12 +214,17 @@ MainWindow::MainWindow(
     open_and_merge_action->setShortcut( QKeySequence( Qt::CTRL + Qt::SHIFT + Qt::Key_O ) );
     save_action->setShortcuts( QKeySequence::Save );
     save_selection_action->setShortcuts( QKeySequence::SaveAs );
+    quit_action->setShortcuts( QKeySequence::Quit );
     help_action->setShortcuts( QKeySequence::HelpContents );
 
+    file_menu->addSection( QIcon( ":/pixmaps/open.png" ), "Open" );
     file_menu->addAction( open_action );
     file_menu->addAction( open_and_merge_action );
+    file_menu->addSection( QIcon( ":/pixmaps/save.png" ), "Save" );
     file_menu->addAction( save_action );
     file_menu->addAction( save_selection_action );
+    file_menu->addSeparator();
+    file_menu->addAction( quit_action );
 
     help_menu->addAction( help_action );
     help_menu->addAction( credits_action );
@@ -253,6 +261,7 @@ MainWindow::MainWindow(
     connect( open_and_merge_action, SIGNAL( triggered() ), this, SLOT( open_xml_and_merge() ) );
     connect( save_action, SIGNAL( triggered() ), this, SLOT( save_as_xml() ) );
     connect( save_selection_action, SIGNAL( triggered() ), this, SLOT( save_selection_as_xml() ) );
+    connect( quit_action, SIGNAL( triggered() ), this, SLOT( close() ) );
     connect( help_action, SIGNAL( triggered() ), this, SLOT( show_help() ) );
     connect( credits_action, SIGNAL( triggered() ), this, SLOT( show_credits() ) );
     connect( change_color_action, SIGNAL( triggered() ), this, SLOT( change_selected_label_color() ) );
@@ -415,34 +424,129 @@ void MainWindow::change_selected_label_name()
     selected_for_context_ = QModelIndex();
 }
 
+void MainWindow::pop_up_file_dialog(
+        QString& filename,
+        QString& relative_dir,
+        QFileDialog::AcceptMode mode
+    )
+{
+    QDialog file_dialog( this );
+    QLabel* file_label = new QLabel( &file_dialog );
+    QLabel* dir_label = new QLabel( &file_dialog );
+    dir_label->setEnabled( false );
+
+    QPushButton* popup_file = new QPushButton( QIcon( ":/pixmaps/open.png" ), QString(), &file_dialog );
+    QPushButton* popup_dir = new QPushButton( QIcon( ":/pixmaps/open.png" ), QString(), &file_dialog );
+    popup_dir->setEnabled( false );
+
+    QFileDialog* xml_dialog = new QFileDialog( &file_dialog );
+    QFileDialog* dir_dialog = new QFileDialog( &file_dialog );
+
+    xml_dialog->setFilter( QDir::Files );
+    xml_dialog->setAcceptMode( mode );
+    xml_dialog->selectNameFilter( "XML Files (*.xml)" );
+    xml_dialog->setWindowTitle( "Select XML file" );
+    xml_dialog->setDirectory( QDir::current() );
+
+    dir_dialog->setFilter( QDir::AllDirs | QDir::NoDotAndDotDot | QDir::Readable );
+    dir_dialog->setAcceptMode( QFileDialog::AcceptOpen );
+    dir_dialog->setWindowTitle( "Select path relative to directory" );
+    dir_dialog->setDirectory( QDir::current() );
+
+    QCheckBox* enable_dir = new QCheckBox( "Use image path relative to directory: ", &file_dialog );
+    enable_dir->setChecked( false );
+
+    QLabel* dir_info_label = new QLabel( "Relative path from: ", &file_dialog );
+    dir_info_label->setEnabled( false );
+
+    QHBoxLayout* file_layout = new QHBoxLayout();
+    file_layout->addWidget( new QLabel( "Choose XML file: ", &file_dialog ) );
+    file_layout->addWidget( file_label );
+    file_layout->addWidget( popup_file );
+    file_layout->setStretchFactor( file_label, 2 );
+
+    QHBoxLayout* dir_layout = new QHBoxLayout();
+    dir_layout->addWidget( dir_info_label );
+    dir_layout->addWidget( dir_label );
+    dir_layout->addWidget( popup_dir );
+    dir_layout->setStretchFactor( dir_label, 2 );
+
+    QPushButton* ok_button = new QPushButton( "OK", &file_dialog );
+    QPushButton* cancel_button = new QPushButton( "Cancel", &file_dialog );
+
+    QHBoxLayout* button_layout = new QHBoxLayout();
+    button_layout->addStretch();
+    button_layout->addWidget( ok_button );
+    button_layout->addWidget( cancel_button );
+
+    QVBoxLayout* main_layout = new QVBoxLayout();
+    main_layout->addLayout( file_layout );
+    main_layout->addWidget( enable_dir );
+    main_layout->addLayout( dir_layout );
+    main_layout->addStretch();
+    main_layout->addLayout( button_layout );
+
+    file_dialog.setLayout( main_layout );
+
+    connect( enable_dir, SIGNAL( toggled(bool) ), popup_dir, SLOT( setEnabled(bool) ) );
+    connect( enable_dir, SIGNAL( toggled(bool) ), dir_label, SLOT( setEnabled(bool) ) );
+    connect( enable_dir, SIGNAL( toggled(bool) ), dir_info_label, SLOT( setEnabled(bool) ) );
+    connect( popup_file, SIGNAL( clicked() ), xml_dialog, SLOT( exec() ) );
+    connect( popup_dir, SIGNAL( clicked() ), dir_dialog, SLOT( exec() ) );
+    connect( xml_dialog, SIGNAL( fileSelected(QString) ), file_label, SLOT( setText(QString) ) );
+    connect( dir_dialog, SIGNAL( fileSelected(QString) ), dir_label, SLOT( setText(QString) ) );
+    connect( ok_button, SIGNAL( clicked() ), &file_dialog, SLOT( accept() ) );
+    connect( cancel_button, SIGNAL( clicked() ), &file_dialog, SLOT( reject() ) );
+
+    file_dialog.exec();
+
+    if( file_dialog.result() == QDialog::Rejected ) {
+        return;
+    }
+
+    QString xml_file = file_label->text();
+    if( xml_file.isEmpty() ) {
+        return;
+    }
+
+    relative_dir = enable_dir->isChecked()? dir_label->text() : QString();
+    filename = xml_file;
+}
+
 void MainWindow::open_xml_and_merge()
 {
-    QString filename = QFileDialog::getOpenFileName( this, "Open XML file", QDir::currentPath(), "XML Files (*.xml)" );
+    QString filename;
+    QString relative_dir;
+    pop_up_file_dialog( filename, relative_dir, QFileDialog::AcceptOpen );
     if( filename.isEmpty() ) {
         return;
     }
 
-    load_xml( filename, true );
+    load_xml( filename, relative_dir, true );
 }
 
 void MainWindow::open_xml()
 {
-    QString filename = QFileDialog::getOpenFileName( this, "Open XML file", QDir::currentPath(), "XML Files (*.xml)" );
+    QString filename;
+    QString relative_dir;
+    pop_up_file_dialog( filename, relative_dir, QFileDialog::AcceptOpen );
     if( filename.isEmpty() ) {
         return;
     }
 
-    load_xml( filename, false );
+    load_xml( filename, relative_dir, false );
 }
 
 void MainWindow::save_as_xml()
 {
-    QString filename = QFileDialog::getSaveFileName( this, "Save as XML file", QDir::currentPath(), "XML Files (*.xml)" );
+    QString filename;
+    QString relative_dir;
+    pop_up_file_dialog( filename, relative_dir, QFileDialog::AcceptSave );
     if( filename.isEmpty() ) {
         return;
     }
 
-    save_xml( filename, QModelIndexList() );
+    save_xml( filename, relative_dir, QModelIndexList() );
 }
 
 void MainWindow::save_selection_as_xml()
@@ -454,15 +558,19 @@ void MainWindow::save_selection_as_xml()
     }
     QModelIndexList selection = selection_model->selectedRows();
 
-    QString filename = QFileDialog::getSaveFileName( this, "Save Selection as XML file", QDir::currentPath(), "XML Files (*.xml)" );
+    QString filename;
+    QString relative_dir;
+    pop_up_file_dialog( filename, relative_dir, QFileDialog::AcceptSave );
     if( filename.isEmpty() ) {
         return;
     }
 
-    save_xml( filename, selection );
+    save_xml( filename, relative_dir, selection );
 }
+
 void MainWindow::load_xml(
         const QString& filename,
+        const QString& relative_dir,
         bool merge
     )
 {
@@ -473,7 +581,7 @@ void MainWindow::load_xml(
     }
 
     QHash< QString, QList<TagItem::Elements> > elts;
-    if( !TagIO::read( &file, elts ) ) {
+    if( !TagIO::read( &file, relative_dir, elts ) ) {
         QMessageBox::critical( this, "Error", "Failed to recognize file format/elements" );
 
     } else {
@@ -487,6 +595,7 @@ void MainWindow::load_xml(
 
 void MainWindow::save_xml(
         const QString& filename,
+        const QString& relative_dir,
         const QModelIndexList& selection
     )
 {
@@ -496,7 +605,7 @@ void MainWindow::save_xml(
         return;
     }
 
-    TagIO::write( &file, tag_model_->get_all_tags(), tag_model_->get_all_elements( selection ) );
+    TagIO::write( &file, relative_dir, tag_model_->get_all_tags(), tag_model_->get_all_elements( selection ) );
     file.close();
 }
 

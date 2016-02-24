@@ -31,6 +31,7 @@ public:
     // label colors (optional) are provided by tag_color_dict
     static void write(
         QIODevice* out,
+        const QString& relative_dir,
         const QHash<QString, QColor>& tag_color_dict,
         const QHash< QString, QList<TagItem::Elements> >& elts
     );
@@ -39,6 +40,7 @@ public:
     // if no label colors were provided, colors are chosen randomly
     static bool read(
         QIODevice* in,
+        const QString& relative_dir,
         QHash< QString, QList<TagItem::Elements> >& elts
     );
 

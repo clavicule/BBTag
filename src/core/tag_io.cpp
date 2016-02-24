@@ -3,6 +3,7 @@
 #include <QXmlStreamWriter>
 #include <QXmlStreamReader>
 #include <QTextCodec>
+#include <QDir>
 
 
 const QString TagIO::DATASET = "dataset";
@@ -24,12 +25,18 @@ const QString TagIO::HEIGHT = "height";
 
 void TagIO::write(
         QIODevice* out,
+        const QString& relative_dir,
         const QHash<QString, QColor>& tag_color_dict,
         const QHash< QString, QList<TagItem::Elements> >& elts
     )
 {
     if( !out ) {
         return;
+    }
+
+    QDir dir;
+    if( !relative_dir.isEmpty() ) {
+        dir = QDir( relative_dir ).absolutePath();
     }
 
     QXmlStreamWriter xml;
@@ -40,7 +47,6 @@ void TagIO::write(
     xml.writeStartElement( DATASET );
     xml.writeTextElement( NAME, "dataset containing bounding box labels on images" );
     xml.writeTextElement( COMMENT, "created by BBTag" );
-
     xml.writeStartElement( TAGS );
     for( QHash<QString, QColor>::const_iterator c_itr = tag_color_dict.begin(); c_itr != tag_color_dict.end(); ++c_itr ) {
         xml.writeEmptyElement( SINGLE_TAG );
@@ -54,6 +60,10 @@ void TagIO::write(
     for( QHash< QString, QList<TagItem::Elements> >::const_iterator img_itr = elts.begin(); img_itr != elts.end(); ++img_itr ) {
         QString fullpath = img_itr.key();
         const QList<TagItem::Elements>& tags = img_itr.value();
+
+        if( !relative_dir.isEmpty() && dir.exists() ) {
+            fullpath = dir.relativeFilePath( fullpath );
+        }
 
         xml.writeStartElement( SINGLE_IMAGE );
         xml.writeAttribute( PATH, fullpath );
@@ -85,11 +95,17 @@ void TagIO::write(
 
 bool TagIO::read(
         QIODevice* in,
+        const QString& relative_dir,
         QHash< QString, QList<TagItem::Elements> >& elts
     )
 {
     if( !in ) {
         return false;
+    }
+
+    QDir dir;
+    if( !relative_dir.isEmpty() ) {
+        dir = QDir( relative_dir ).absolutePath();
     }
 
     QXmlStreamReader xml;
@@ -129,6 +145,10 @@ bool TagIO::read(
             if( fullpath.isEmpty() ) {
                 xml.skipCurrentElement();
                 continue;
+            }
+
+            if( !relative_dir.isEmpty() && dir.exists() ) {
+                fullpath = dir.absoluteFilePath( fullpath );
             }
 
             if( !xml.readNextStartElement() ) {
