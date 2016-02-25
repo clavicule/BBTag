@@ -16,5 +16,7 @@
         <file>pixmaps/change_label.png</file>
         <file>icon/bbtag.png</file>
         <file>icon/bbtag.ico</file>
+        <file>html/Credits.html</file>
+        <file>html/Help.html</file>
     </qresource>
 </RCC>

@@ -22,6 +22,7 @@
 #include <QColorDialog>
 #include <QMessageBox>
 #include <QCheckBox>
+#include <QTextBrowser>
 
 
 MainWindow::MainWindow(
@@ -646,12 +647,39 @@ void MainWindow::save_selection_as_images()
 
 void MainWindow::show_help()
 {
-
+    pop_up_html_dialog( QUrl( "qrc:/html/Help.html" ) );
 }
 
 void MainWindow::show_credits()
 {
+    pop_up_html_dialog( QUrl( "qrc:/html/Credits.html" ) );
+}
 
+void MainWindow::pop_up_html_dialog(
+        const QUrl& url
+    )
+{
+    QDialog html_dialog( this );
+
+    QTextBrowser* text_help = new QTextBrowser( &html_dialog );
+    text_help->setOpenExternalLinks( true );
+    text_help->setSource( url );
+
+    QPushButton* ok_button = new QPushButton( "OK", &html_dialog );
+
+    QHBoxLayout* button_layout = new QHBoxLayout();
+    button_layout->addStretch();
+    button_layout->addWidget( ok_button );
+
+    QVBoxLayout* main_layout = new QVBoxLayout();
+    main_layout->addWidget( text_help );
+    main_layout->addLayout( button_layout );
+    main_layout->setStretchFactor( text_help, 2 );
+    html_dialog.setLayout( main_layout );
+
+    connect( ok_button, SIGNAL( clicked() ), &html_dialog, SLOT( accept() ) );
+    html_dialog.resize( size() / 2 );
+    html_dialog.exec();
 }
 
 void MainWindow::update_viewer()

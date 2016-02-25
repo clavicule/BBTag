@@ -146,6 +146,10 @@ protected:
         QFileDialog::AcceptMode mode
     );
 
+    void pop_up_html_dialog(
+        const QUrl& url
+    );
+
 private:
     QFileSystemModel* dir_model_;
     QTreeView* dir_view_;
