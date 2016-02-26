@@ -18,5 +18,14 @@
         <file>icon/bbtag.ico</file>
         <file>html/Credits.html</file>
         <file>html/Help.html</file>
+        <file>html/add_label.png</file>
+        <file>html/cropped_export.png</file>
+        <file>html/import_images.png</file>
+        <file>html/remove_label.png</file>
+        <file>html/tag_images.png</file>
+        <file>html/untag_images.png</file>
+        <file>html/viewer_display.png</file>
+        <file>html/xml_export.png</file>
+        <file>html/bbtag.png</file>
     </qresource>
 </RCC>

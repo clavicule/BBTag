@@ -678,7 +678,7 @@ void MainWindow::pop_up_html_dialog(
     html_dialog.setLayout( main_layout );
 
     connect( ok_button, SIGNAL( clicked() ), &html_dialog, SLOT( accept() ) );
-    html_dialog.resize( size() / 2 );
+    html_dialog.resize( size() * 2 / 3 );
     html_dialog.exec();
 }
 

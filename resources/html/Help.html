@@ -1,3 +1,254 @@
-<!DOCTYPE html><html>  <head>    <meta  content="text/html; charset=UTF-8"  http-equiv="content-type">    <title>Help</title>  </head>  <body>    <h1  style=" text-align: center;"><span  style="color: rgb(18, 107, 200);"><span           style="text-decoration: underline;"><img             title="Icon"             alt="BBTag icon"             src="file:///Users/sandtrap/dev/sandbox/BBTag/resources/icon/bbtag.png"></span></span></h1>    <h1  style=" text-align: center;"><span  style="color: rgb(18, 107, 200);"><span           style="text-decoration: underline;">BBTag
-          Help Document</span></span></h1>    <h2><span  style="color: rgb(18, 107, 200);"><span  style="text-decoration: underline;">Goal</span></span></h2>    <p>BBTag is meant to be used for tagging (i-e labeling rectangles) images,      which is a tedious task for people who need to make their own dataset for      supervised machine learning. In a nutshell, the advantages of BBTag are:</p>    <ul>      <li><span  style="font-style: italic; color: rgb(0, 153, 0);">multiple          labeling:</span> each image can be tagged multiple times with        different labels.</li>      <li><span  style="color: rgb(0, 153, 0); font-style: italic;">label          organization:</span> a BBTag session is grouped by label. It becomes        very easy to know which labels are present in each image without having        to view the images one by one. An "Untagged" section is also provided by        default to quickly find out which images need to be tagged.</li>      <li><span  style="color: rgb(0, 153, 0); font-style: italic;">worry-free          tagging:</span> add and remove tags as needed. If you got a tag wrong,        delete it and tag again without impacting any other tag.</li>      <li><em  style="color: rgb(0, 153, 0);">selective saving:</em> save your        entire BBTag session or just a subset based on image and/or labels. You        can reuse the same pool of images for different purposes (e.g. save only        "faces" and "body", then "person", etc. regardless of the overlap        between each tag).</li>      <li><em  style="color: rgb(0, 153, 0);">XML or image part output:</em>        save your dataset as</li>      <ul>        <li><span  style="text-decoration: underline;">XML file:</span> it will          containing the path to images and label bounding box coordinates. This          file can be directly input in dlib for instance. You may also read the          data with python and appropriate XML package.</li>        <li><span  style="text-decoration: underline;">Image part files:</span>          it will output one folder per label. Each label folder will contain          the image part cropped by the bounding boxes for that label. It could          be useful for direct input to train Deep Learning networks for          instance.</li>      </ul>    </ul>    <br>    <h2><span  style="color: rgb(18, 107, 200);"><span  style="text-decoration: underline;">How
-          to use?</span></span></h2>    <ol>      <li><strong>&nbsp;<span  style="text-decoration: underline;">Import images</span></strong><br>        There are 2 ways to bring images in the BBTag session:        <ul>          <li> Load a selection of images through the directory explorer: these            images will be added to the current session (i-e images and tags            already present are left untouched)</li>          <li>Load a XML file referencing images and tags: if "Open XML" is            chosen, the current session is cleared of existing images and tags            first. If "Open XML and Merge" is chosen, the current session is            left untouched.</li>        </ul>        <br>      </li>      <li><strong>&nbsp;<span  style="text-decoration: underline;">Add/Remove            Labels</span></strong><br>        You can add as many label as needed by simply clicking on the "+" button        (or using the "+" key as shortcut). By default a random color is picked        for you. To change the color or the name of the label, simply        right-click on it and choose "change color/label" action.<br>        <strong  style="color: rgb(255, 0, 0);">Be careful when removing a label</strong>:        all the bounding boxes of all the images belonging to that label will be        removed. To do so, click on the "x" button (or use the "Del" key        shortcut). To remove all the bounding boxes for a specific image, select        only that image under the label (and not the entire label) before        clicking on "x" button.<br>        <br>      </li>      <li><strong>&nbsp;<span  style="text-decoration: underline;">Tag/Untag            Images</span></strong></li>      <li><strong>&nbsp;<span  style="text-decoration: underline;">Export Tags</span></strong></li>    </ol>  </body></html>
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta  content="text/html; charset=UTF-8"  http-equiv="content-type">
+    <title>Help</title>
+  </head>
+  <body>
+    <h1  style=" text-align: center;"><span  style="color: rgb(18, 107, 200);"><span
+           style="text-decoration: underline;"><img
+             title="Icon"
+             alt="BBTag icon"
+             src="bbtag.png"></span></span></h1>
+    <h1  style=" text-align: center;"><span  style="color: rgb(18, 107, 200);"><span
+           style="text-decoration: underline;">BBTag
+          Help Document</span></span></h1>
+    <p> </p>
+    <h2><span  style="color: rgb(18, 107, 200);"><span  style="text-decoration: underline;">Table
+          of Contents</span></span></h2>
+    <br>
+    <br>
+    <a  href="#Goal">Goal</a><br>
+    <a  href="#How_to_use">How to use?</a><br>
+    <a  href="#shortcuts">Shortcuts</a><br>
+    <span  style="color: rgb(18, 107, 200);"><span  style="text-decoration: underline;"></span></span>
+    <h2><a  id="Goal"><span  style="color: rgb(18, 107, 200);"><span  style="text-decoration: underline;">Goal</span></span></a></h2>
+    <p>BBTag is meant to be used for tagging (i-e labeling rectangles) images,
+      which is a tedious task for people who need to make their own dataset for
+      supervised machine learning. In a nutshell, the advantages of BBTag are:</p>
+    <ul>
+      <li><span  style="font-style: italic; color: rgb(0, 153, 0);">multiple
+          labeling:</span> each image can be tagged multiple times with
+        different labels.</li>
+      <li><span  style="color: rgb(0, 153, 0); font-style: italic;">label
+          organization:</span> a BBTag session is grouped by label. It becomes
+        very easy to know which labels are present in each image without having
+        to view the images one by one. An "Untagged" section is also provided by
+        default to quickly find out which images need to be tagged.</li>
+      <li><span  style="color: rgb(0, 153, 0); font-style: italic;">worry-free
+          tagging:</span> add and remove tags as needed. If you got a tag wrong,
+        delete it and tag again without impacting any other tag.</li>
+      <li><em  style="color: rgb(0, 153, 0);">selective saving:</em> save your
+        entire BBTag session or just a subset based on image and/or labels. You
+        can reuse the same pool of images for different purposes (e.g. save only
+        "faces" and "body", then "person", etc. regardless of the overlap
+        between each tag).</li>
+      <li><em  style="color: rgb(0, 153, 0);">XML or image part output:</em>
+        save your dataset as</li>
+      <ul>
+        <li><span  style="text-decoration: underline;">XML file:</span> it will
+          containing the path to images and label bounding box coordinates. This
+          file can be directly input in dlib for instance. You may also read the
+          data with python and appropriate XML package.</li>
+        <li><span  style="text-decoration: underline;">Image part files:</span>
+          it will output one folder per label. Each label folder will contain
+          the image part cropped by the bounding boxes for that label. It could
+          be useful for direct input to train Deep Learning networks for
+          instance.</li>
+      </ul>
+    </ul>
+    <br>
+    <h2><span  style="color: rgb(18, 107, 200);"><span  style="text-decoration: underline;"><a
+             id="How_to_use"
+             name="How_to_use"></a>How
+          to use?</span></span></h2>
+    <ol>
+      <li><strong>&nbsp;<span  style="text-decoration: underline;">Import images</span></strong><br>
+        There are 2 ways to bring images in the BBTag session:
+        <ul>
+          <li> Load a selection of images through the directory explorer: these
+            images will be added to the current session (i-e images and tags
+            already present are left untouched)</li>
+          <li>Load a XML file referencing images and tags: if "Open XML" is
+            chosen, the current session is cleared of existing images and tags
+            first. If "Open XML and Merge" is chosen, the current session is
+            left untouched.</li>
+        </ul>
+        <br>
+        <div  style="text-align: center;"><img  style="width: 400px; height: 190px;"
+             title="Import images"
+             alt="Import images capture"
+             src="import_images.png"></div>
+        <ul>
+        </ul>
+        <br>
+        <br>
+      </li>
+      <li><strong>&nbsp;<span  style="text-decoration: underline;">Add/Remove
+            Labels and/or Tags</span></strong><br>
+        You can add as many label as needed by simply clicking on the "+" button
+        (or using the "+" key as shortcut). By default a random color is picked
+        for you. To change the color or the name of the label, simply
+        right-click on it and choose "change color/label" action.<br>
+        <br>
+        <div  style="text-align: center;"><img  style="width: 400px; height: 140px;"
+             title="Add label"
+             alt="Add label capture"
+             src="add_label.png"><br>
+          <br>
+          <br>
+        </div>
+        <strong  style="color: rgb(255, 0, 0);">Be careful when removing a label</strong>:
+        all the bounding boxes of all the images belonging to that label will be
+        removed. To do so, click on the "x" button (or use the "Del" key
+        shortcut). To remove all the bounding boxes for a specific image, select
+        only that image under the label (and not the entire label) before
+        clicking on "x" button. To remove permanently an image from the session,
+        select it under &lt;ALL&gt;, then click remove.<br>
+        <br>
+        <div  style="text-align: center;"><img  style="width: 400px; height: 140px;"
+             title="Remove label"
+             alt="Remove label capture"
+             src="remove_label.png"><br>
+        </div>
+        <br>
+        <br>
+      </li>
+      <li><strong>&nbsp;<span  style="text-decoration: underline;">Tag/Untag
+            Images</span></strong><br>
+        To add a tag to an image, select the label first in the drop-down menu,
+        then toggle on the Tag button (or use t-key as shortcut). With the left
+        mouse button, click and drag over the area to tag. The label-tree will
+        update automatically so that only the images that have tags appear under
+        their corresponding label. &lt;UNTAGGED&gt; will list only the images
+        that have no tag at all, which is very handy as "tag to-do list".<br>
+        <br>
+        <div  style="text-align: center;"><img  style="width: 400px; height: 140px;"
+             title="Tag image"
+             alt="Tag image capture"
+             src="tag_images.png"><br>
+        </div>
+        <br>
+        <br>
+        To remove a tag, toggle on the Trash button (or use the d-key) and click
+        close enough to the rectangle to remove.<br>
+        <br>
+        <div  style="text-align: center;">&nbsp; <img  style="width: 400px; height: 140px;"
+             title="Untag image"
+             alt="Untag image capture"
+             src="untag_images.png">
+        </div>
+        <br>
+        <br>
+      </li>
+      <li>&nbsp;<strong  style="text-decoration: underline;">Viewer manipulation</strong><br>
+        When selecting an image in the label-tree, only the tags corresponding
+        to that label are shown on the image. This is very useful to filter out
+        tags belonging to labels you don't want to display<strong> </strong>and
+        vice-versa, use multiple selection to show multiple labels. If the image
+        under &lt;ALL&gt; is selected, all tags are shown. If 0 image or more
+        than 2 different images are selected, an error message is displayed: it
+        is not possible to know which image you are trying to look at of course.<br>
+        <br>
+        <div  style="text-align: center;"><img  style="width: 400px; height: 140px;"
+             title="Viewer display"
+             alt="Viewer display capture"
+             src="viewer_display.png"><br>
+          <br>
+        </div>
+        Use the zoom-in/zoom-out buttons (or Ctrl + mouse wheels up/down) and
+        fit-to-view button to adjust the viewer setting. <br>
+        <br>
+        <br>
+      </li>
+      <li><strong>&nbsp;<span  style="text-decoration: underline;">Export Tags</span></strong><br>
+        There are 2 type of export:</li>
+      <ul>
+        <li>tags can be saved as XML file (that you can directly import in
+          dlib): it will contain the path to the image (either absolute or
+          relative to a directory of your choice).</li>
+        <li>tags can be saved as individual cropped images (maybe useful for
+          direct Deep Learning input?).</li>
+      </ul>
+      <br>
+      You can export the whole BBTag session or only a subset of your choice.
+      Again this could be very convenient for you to separate your tags in
+      different sub-datasets.<br>
+      <br>
+      <div  style="text-align: center;"><img  style="width: 400px; height: 375px;"
+           title="XML export"
+           alt="XML export capture"
+           src="xml_export.png"></div>
+      <br>
+      <br>
+      <div  style="text-align: center;"><img  style="width: 400px; height: 179px;"
+           title="Cropped export"
+           alt="Cropped export capture"
+           src="cropped_export.png"></div>
+    </ol>
+    <p><br>
+    </p>
+    <h2><span  style="color: rgb(18, 107, 200);"><span  style="text-decoration: underline;"><a
+             id="shortcuts"
+             name="shortcuts"></a>Shortcuts</span></span></h2>
+    <table  style="width: 579px; height: 350px;"  border="1">
+      <tbody>
+        <tr>
+          <td  style="width: 180.933px;"><strong>Ctrl + O</strong></td>
+          <td  style="width: 382.067px;"><span  style="color: rgb(0, 153, 0);"><em>&nbsp;Open
+                XML File</em></span></td>
+        </tr>
+        <tr>
+          <td><strong>Shift +&nbsp; Ctrl + O</strong></td>
+          <td><span  style="color: rgb(0, 153, 0);"><em>&nbsp;Open XML File and
+                Merge with current session</em></span></td>
+        </tr>
+        <tr>
+          <td><strong>Ctrl + S</strong></td>
+          <td><span  style="color: rgb(0, 153, 0);"><em>&nbsp;Save as XML File</em></span></td>
+        </tr>
+        <tr>
+          <td><strong>Shift + Ctrl + S</strong></td>
+          <td><span  style="color: rgb(0, 153, 0);"><em>&nbsp;Save Selection as
+                XML File</em></span></td>
+        </tr>
+        <tr>
+          <td><strong>key_+</strong></td>
+          <td><span  style="color: rgb(0, 153, 0);"><em>&nbsp;Add new label</em></span></td>
+        </tr>
+        <tr>
+          <td><strong>Del</strong></td>
+          <td><span  style="color: rgb(0, 153, 0);"><em>&nbsp;Remove selected
+                labels and/or images</em></span></td>
+        </tr>
+        <tr>
+          <td><strong>key_t</strong></td>
+          <td><span  style="color: rgb(0, 153, 0);"><em>&nbsp;Start tagging in
+                viewer</em></span></td>
+        </tr>
+        <tr>
+          <td><strong>key_d</strong></td>
+          <td><span  style="color: rgb(0, 153, 0);"><em>&nbsp;Remove tag in
+                viewer</em></span></td>
+        </tr>
+        <tr>
+          <td><strong>Ctrl + Mouse Wheel Up</strong></td>
+          <td><span  style="color: rgb(0, 153, 0);"><em>&nbsp;Zoom in</em></span></td>
+        </tr>
+        <tr>
+          <td><strong>Ctrl + Mouse Wheel Down</strong></td>
+          <td><span  style="color: rgb(0, 153, 0);"><em>&nbsp;Zoom out</em></span></td>
+        </tr>
+        <tr>
+          <td><strong>key_f</strong></td>
+          <td><span  style="color: rgb(0, 153, 0);"><em>&nbsp;Fit image to View</em></span></td>
+        </tr>
+      </tbody>
+    </table>
+    <p><br>
+    </p>
+    <ol>
+    </ol>
+    
+  </body>
+</html>
