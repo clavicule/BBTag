@@ -15,12 +15,12 @@ BBTag is meant to be used for tagging (i-e labeling rectangles) images, which is
 ![BBTag_preview](BBTag_preview.png)
 
 ## Installation
-* Either download [v1.0 release](https://github.com/clavicule/BBTag/releases) for MacOSX or Ubuntu-15
+* Either download [v1.0 release](https://github.com/clavicule/BBTag/releases) for MacOSX
 * Or build it from source:
   1. download the source code: `git clone https://github.com/clavicule/BBTag.git`
   2. download and install Qt 5.x (originally built and tested against Qt 5.5)
   3. build BBTag: 
-    * either run `qmake` then `make` (or equivalent depending on your platform)
+    * either run `qmake BBTag.pro` then `make` (or equivalent depending on your platform)
     * or load BBTag.pro in Qt Creator and go to Build > Build Project "BBTag"
 
 ## Improvements
