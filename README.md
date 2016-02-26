@@ -12,7 +12,7 @@ BBTag is meant to be used for tagging (i-e labeling rectangles) images, which is
   * XML file: it will containing the path to images and label bounding box coordinates. This file can be directly input in dlib for instance. You may also read the data with python and appropriate XML package. 
   * Image part files: it will output one folder per label. Each label folder will contain the image part cropped by the bounding boxes for that label. It could be useful for direct input to train Deep Learning networks for instance. 
 
-![BBTag_preview](BBTag_preview.png)
+![BBTag_preview](resources/html/BBTag_preview.png)
 
 ## Installation
 * Either download [v1.0 release](https://github.com/clavicule/BBTag/releases) for MacOSX
