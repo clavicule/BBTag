@@ -15,7 +15,7 @@ BBTag is meant to be used for tagging (i-e labeling rectangles) images, which is
 ![BBTag_preview](resources/html/BBTag_preview.png)
 
 ## Installation
-* Either download binaries from [v1.0 release](https://github.com/clavicule/BBTag/releases) for MacOSX and Windows 64-bits
+* Either download binaries from [v1.0 release](https://github.com/clavicule/BBTag/releases) available for MacOSX, Windows 64-bits and Ubuntu 15
 * Or build it from source:
   1. download the source code: `git clone https://github.com/clavicule/BBTag.git`
   2. download and install Qt 5.x (originally built and tested against Qt 5.5)
