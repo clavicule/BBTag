@@ -457,8 +457,8 @@ void MainWindow::pop_up_file_dialog(
     xml_dialog->setWindowTitle( "Select XML file" );
     xml_dialog->setDirectory( QDir::current() );
 
-    dir_dialog->setFilter( QDir::AllDirs | QDir::NoDotAndDotDot | QDir::Readable );
-    dir_dialog->setAcceptMode( QFileDialog::AcceptOpen );
+    dir_dialog->setOptions( QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks );
+    dir_dialog->setFileMode( QFileDialog::DirectoryOnly );
     dir_dialog->setWindowTitle( "Select path relative to directory" );
     dir_dialog->setDirectory( QDir::current() );
 
