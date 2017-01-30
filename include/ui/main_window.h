@@ -166,6 +166,8 @@ private:
     QComboBox* label_selector_;
     TagViewer* tag_viewer_;
     TagScrollView* tag_scroll_view_;
+
+    QString current_fullpath_;
 };
 
 #endif // MAIN_WINDOW_H

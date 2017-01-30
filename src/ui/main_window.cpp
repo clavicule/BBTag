@@ -736,7 +736,12 @@ void MainWindow::update_viewer()
     tag_viewer_->set_image( pix );
     tag_viewer_->set_overlay_elements( display_elements );
     tag_viewer_->update();
-    tag_scroll_view_->fit_to_view();
+
+    // fit to view only if new image being displayed
+    if( current_fullpath_ != fullpath_ref ) {
+        tag_scroll_view_->fit_to_view();
+        current_fullpath_ = fullpath_ref;
+    }
 }
 
 void MainWindow::update_tag_selector()
